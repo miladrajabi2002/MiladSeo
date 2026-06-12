@@ -38,6 +38,8 @@ export interface OverviewStats {
   avgDesktop: number | null;
   totalKeywords: number;
   distribution: DistributionBucket[];
+  /** Top 5 best-ranking keywords by current desktop position */
+  topKeywords: KeywordRow[];
 }
 
 export interface MoverRow {

@@ -35,7 +35,8 @@ export default function StatCard({
     <motion.div
       variants={statCardVariants}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="rounded-xl border border-border-base bg-bg-card p-4 shadow-card"
+      whileHover={{ y: -3 }}
+      className="rounded-xl border border-border-base bg-bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover"
     >
       <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">
         {label}

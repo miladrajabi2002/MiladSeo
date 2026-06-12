@@ -33,7 +33,7 @@ export default function PositionBadge({ position }: PositionBadgeProps) {
       initial={{ scale: 1.3 }}
       animate={{ scale: 1 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-full tabular-nums ${badgeClasses(position)}`}
+      className={`inline-flex min-w-[2.5rem] items-center justify-center rounded-md tabular-nums ${badgeClasses(position)}`}
     >
       {position.toFixed(1)}
     </motion.span>

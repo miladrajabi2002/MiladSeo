@@ -52,7 +52,7 @@ export default function GroupBadge({ group, className = "" }: GroupBadgeProps) {
   if (!group) {
     return (
       <span
-        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-text-muted ${className}`}
+        className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-text-muted ${className}`}
         style={{ backgroundColor: "rgba(148, 163, 184, 0.15)" }}
       >
         —
@@ -63,7 +63,7 @@ export default function GroupBadge({ group, className = "" }: GroupBadgeProps) {
   const style = groupStyle(group);
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${className}`}
+      className={`inline-flex items-center whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-medium ${className}`}
       style={{ backgroundColor: style.bg, color: style.text }}
     >
       {group}

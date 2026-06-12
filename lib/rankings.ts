@@ -163,6 +163,11 @@ export async function getOverviewStats(
       ? round1(positions.reduce((a, b) => a + b, 0) / positions.length)
       : null;
 
+  const topKeywords = rows
+    .filter((r): r is KeywordRow & { desktopPos: number } => r.desktopPos !== null)
+    .sort((a, b) => a.desktopPos - b.desktopPos)
+    .slice(0, 5);
+
   return {
     top10: positions.filter((p) => p <= 10).length,
     top20: positions.filter((p) => p > 10 && p <= 20).length,
@@ -170,6 +175,7 @@ export async function getOverviewStats(
     avgDesktop: avg,
     totalKeywords: rows.length,
     distribution,
+    topKeywords,
   };
 }
 

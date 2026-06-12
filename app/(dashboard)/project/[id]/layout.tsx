@@ -140,10 +140,11 @@ export default function ProjectLayout({
             type="button"
             onClick={() => void handleLiveSheet()}
             disabled={sheetLoading}
-            className="flex items-center gap-1.5 rounded-lg bg-accent-green px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border border-accent-green bg-transparent px-3 py-1.5 text-xs font-semibold text-accent-green transition-colors hover:bg-[rgba(34,197,94,0.1)] disabled:opacity-50"
           >
+            <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-accent-green" />
             <Sheet size={13} />
-            {sheetLoading ? "Updating…" : "● Live Sheet"}
+            {sheetLoading ? "Updating…" : "Live Sheet"}
           </button>
           <a
             href={`/api/projects/${projectId}/keywords?format=csv`}

@@ -54,7 +54,7 @@ export default function Header({ onOpenMobileMenu }: HeaderProps) {
         ) : null}
         {google?.connected ? (
           <span className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-text-muted">
-            <span className="h-2 w-2 rounded-full bg-accent-green" />
+            <span className="pulse-dot h-2 w-2 rounded-full bg-accent-green" />
             Google connected
           </span>
         ) : null}
