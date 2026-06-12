@@ -183,6 +183,60 @@ Follow [GOOGLE_SETUP.md](GOOGLE_SETUP.md) to create OAuth credentials, then:
 
 ---
 
+## Troubleshooting
+
+### 502 from Nginx / site doesn't load
+
+A 502 means Nginx couldn't reach the app. Check the PM2 log first:
+
+```bash
+pm2 log seo-dashboard --lines 30
+```
+
+You **must** see a line like:
+
+```
+> SEO Dashboard ready on http://0.0.0.0:3000 (production)
+```
+
+If that line is missing, the app never started listening — usually a port
+conflict. Find what occupies the port:
+
+```bash
+ss -tlnp | grep ':3000'
+```
+
+If another service (a proxy like nghttpx, another app, …) is on 3000:
+
+1. Set a free port in `.env`, e.g. `PORT=3001`
+2. Update `proxy_pass` in your Nginx config to `http://127.0.0.1:3001`
+3. `pm2 restart seo-dashboard && sudo systemctl reload nginx`
+
+### curl shows a different server (e.g. `Server: nghttpx`)
+
+Two possible causes:
+
+- Another process is listening on that port (see above), **or**
+- your shell has `http_proxy`/`https_proxy` set, so curl goes through a
+  proxy instead of hitting localhost. Test while bypassing any proxy:
+
+```bash
+curl --noproxy '*' -I http://127.0.0.1:3000/login
+```
+
+A healthy app answers `HTTP/1.1 200 OK` with `X-Powered-By: Next.js`.
+
+### `make dev` says "Could not find a production build"
+
+Your shell exports `NODE_ENV=production`, which switched the dev server into
+production mode. The Makefile now forces `NODE_ENV=development` for
+`make dev`; for production always use `make build` + `make start` (or PM2).
+
+### Login always fails with correct password
+
+The `$` characters in `ADMIN_PASSWORD_HASH` must be escaped as `\$` in
+`.env` (see Step 5) — Next.js expands `$VAR` references inside env values.
+
 ## Updating
 
 ```bash
