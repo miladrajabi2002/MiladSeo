@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { format, parseISO } from "date-fns";
 import toast from "react-hot-toast";
 import { Eye } from "lucide-react";
+import { useCalendar } from "@/contexts/CalendarContext";
+import { formatDateShort, formatDateLong } from "@/lib/jalaali";
 import {
   Area,
   AreaChart,
@@ -24,11 +25,12 @@ function VisibilityTooltip({
   payload,
   label,
 }: TooltipProps<number, string>) {
+  const { calendar } = useCalendar();
   if (!active || !payload || payload.length === 0) return null;
   return (
     <div className="rounded-lg border border-border-base bg-bg-card px-3 py-2 text-xs shadow-card-hover">
       <p className="font-semibold text-text-primary">
-        {format(parseISO(String(label)), "MMM d, yyyy")}
+        {formatDateLong(String(label), calendar)}
       </p>
       <p className="mt-0.5 text-accent-blue">
         Visibility: {payload[0].value}%
@@ -38,6 +40,7 @@ function VisibilityTooltip({
 }
 
 export default function VisibilityChart({ projectId }: { projectId: number }) {
+  const { calendar } = useCalendar();
   const [days, setDays] = useState<30 | 90>(30);
   const [data, setData] = useState<VisibilityData | null>(null);
 
@@ -147,7 +150,7 @@ export default function VisibilityChart({ projectId }: { projectId: number }) {
               <XAxis
                 dataKey="date"
                 tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
-                tickFormatter={(d: string) => format(parseISO(d), "MM/dd")}
+                tickFormatter={(d: string) => formatDateShort(d, calendar)}
                 axisLine={{ stroke: "var(--border)" }}
                 tickLine={false}
                 minTickGap={24}
@@ -187,7 +190,7 @@ export default function VisibilityChart({ projectId }: { projectId: number }) {
           {visibleAnnotations.slice(0, 4).map((a) => (
             <span key={a.id} className="text-xs text-text-secondary">
               <span className="text-accent-yellow">┊</span>{" "}
-              {format(parseISO(a.date), "MM/dd")} — {a.title}
+              {formatDateShort(a.date, calendar)} — {a.title}
             </span>
           ))}
         </div>
