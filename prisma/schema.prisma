@@ -8,16 +8,20 @@ datasource db {
 }
 
 model Project {
-  id          Int       @id @default(autoincrement())
-  name        String
-  domain      String
-  gscProperty String // e.g. "sc-domain:example.com" or "https://example.com/"
-  location    String    @default("Iran")
-  sheetId     String? // Google Sheet id for the Live Sheet export
-  createdAt   DateTime  @default(now())
-  lastSyncAt  DateTime?
-  keywords    Keyword[]
-  alerts      Alert[]
+  id           Int               @id @default(autoincrement())
+  name         String
+  domain       String
+  gscProperty  String // e.g. "sc-domain:example.com" or "https://example.com/"
+  location     String            @default("Iran")
+  sheetId      String? // Google Sheet id for the Live Sheet export
+  createdAt    DateTime          @default(now())
+  lastSyncAt   DateTime?
+  keywords     Keyword[]
+  alerts       Alert[]
+  annotations  Annotation[]
+  shareLinks   ShareLink[]
+  indexChecks  UrlIndexStatus[]
+  speedResults PageSpeedResult[]
 }
 
 model Keyword {
@@ -74,4 +78,66 @@ model SyncLog {
 model Setting {
   key   String @id
   value String
+}
+
+// Timeline notes ("changed titles on this date") rendered as markers on charts
+model Annotation {
+  id        Int      @id @default(autoincrement())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+  date      DateTime
+  title     String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([projectId, date])
+}
+
+// Read-only public dashboard tokens; deleting a row revokes the link
+model ShareLink {
+  id        Int      @id @default(autoincrement())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+// Cached URL Inspection API results, one row per page URL
+model UrlIndexStatus {
+  id            Int       @id @default(autoincrement())
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId     Int
+  urlPath       String
+  verdict       String // PASS | FAIL | NEUTRAL | PARTIAL | VERDICT_UNSPECIFIED
+  coverageState String?
+  indexingState String?
+  robotsState   String?
+  fetchState    String?
+  lastCrawlTime DateTime?
+  googleCanonical String?
+  checkedAt     DateTime  @default(now())
+
+  @@unique([projectId, urlPath])
+  @@index([projectId])
+}
+
+// Cached PageSpeed Insights results, one row per page URL + strategy
+model PageSpeedResult {
+  id          Int      @id @default(autoincrement())
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   Int
+  urlPath     String
+  strategy    String // "mobile" | "desktop"
+  score       Int // performance score 0-100
+  lcpMs       Float?
+  cls         Float?
+  inpMs       Float?
+  fcpMs       Float?
+  ttfbMs      Float?
+  checkedAt   DateTime @default(now())
+
+  @@unique([projectId, urlPath, strategy])
+  @@index([projectId])
 }

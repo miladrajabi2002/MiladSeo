@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { Download, RefreshCw } from "lucide-react";
+import { Download, RefreshCw, Share2 } from "lucide-react";
 import TabNav from "@/components/layout/TabNav";
 import SiteAvatar from "@/components/ui/SiteAvatar";
+import ShareModal from "@/components/project/ShareModal";
 import { apiGet, apiPost, errorMessage } from "@/lib/client";
 
 interface ProjectDetail {
@@ -32,6 +33,7 @@ export default function ProjectLayout({
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [sheetLoading, setSheetLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const load = useCallback(() => {
     if (!projectId) return;
@@ -86,8 +88,11 @@ export default function ProjectLayout({
   const tabs = [
     { label: "Overview", href: base },
     { label: "All Keywords", href: `${base}/keywords` },
+    { label: "Pages", href: `${base}/pages` },
+    { label: "Insights", href: `${base}/insights` },
     { label: "Movers & Drops", href: `${base}/movers` },
     { label: "Mobile", href: `${base}/mobile` },
+    { label: "Site Health", href: `${base}/health` },
     { label: "Alerts", href: `${base}/alerts`, badge: project?.unreadAlerts },
   ];
 
@@ -134,6 +139,14 @@ export default function ProjectLayout({
             <span className="blink-dot h-1.5 w-1.5 shrink-0 rounded-full bg-accent-green" />
             {sheetLoading ? "Updating…" : "Live Sheet"}
           </button>
+          <button
+            type="button"
+            onClick={() => setShareOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-border-base bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary"
+          >
+            <Share2 size={13} />
+            Share
+          </button>
           <a
             href={`/api/projects/${projectId}/keywords?format=csv`}
             className="flex items-center gap-1.5 rounded-lg border border-border-base bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary"
@@ -158,6 +171,14 @@ export default function ProjectLayout({
       </div>
 
       <div className="mt-6">{children}</div>
+
+      {projectId ? (
+        <ShareModal
+          projectId={Number(projectId)}
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

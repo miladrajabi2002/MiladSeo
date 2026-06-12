@@ -303,3 +303,136 @@ URL.
 ```json
 { "data": { "url": "https://docs.google.com/spreadsheets/d/1AbC..." } }
 ```
+
+---
+
+## Analytics & Insights
+
+### `GET /api/projects/:id/keywords/:keywordId/history?days=30|90`
+Daily ranking history for one keyword (powers the trend modal). `days`
+defaults to 30; only `90` is accepted as an alternative.
+
+```jsonc
+{
+  "data": {
+    "id": 17,
+    "text": "rent a car dubai",
+    "urlPath": "/rent",
+    "group": "Airport",
+    "points": [
+      { "date": "2026-06-01", "desktopPos": 8.2, "mobilePos": 9.1, "clicks": 4, "impressions": 310 }
+    ],
+    "annotations": [{ "id": 1, "date": "2026-06-03", "title": "New titles", "note": null }]
+  }
+}
+```
+
+### `GET /api/projects/:id/compare?range=week|month`
+Aggregates for the current period vs the previous one (avg position, Top 3,
+Top 10, clicks, impressions, CTR).
+
+```jsonc
+{
+  "data": {
+    "range": "week",
+    "current":  { "label": "This week", "avgPosition": 14.2, "top3": 6, "top10": 21, "clicks": 412, "impressions": 18250, "ctr": 2.3 },
+    "previous": { "label": "Last week", "avgPosition": 15.0, "top3": 5, "top10": 19, "clicks": 388, "impressions": 17020, "ctr": 2.3 }
+  }
+}
+```
+
+### `GET /api/projects/:id/traffic?days=30|90`
+Daily clicks/impressions series plus **CTR opportunities** — queries with
+≥100 impressions in the window whose CTR is below 60% of the typical CTR
+for their position (i.e. the snippet underperforms).
+
+```jsonc
+{
+  "data": {
+    "series": [{ "date": "2026-06-01", "clicks": 14, "impressions": 800, "ctr": 1.8 }],
+    "totalClicks": 412,
+    "totalImpressions": 18250,
+    "avgCtr": 2.3,
+    "opportunities": [
+      { "id": 17, "text": "cheap car rental", "urlPath": "/cheap", "group": null,
+        "position": 4.1, "impressions": 2200, "clicks": 12, "ctr": 0.5, "expectedCtr": 8.0 }
+    ]
+  }
+}
+```
+
+### `GET /api/projects/:id/pages`
+Per-URL aggregation over the last 30 days: keyword count, best/avg
+position, clicks, impressions, a 14-day avg-position trend, week-over-week
+change and the page's top 5 keywords.
+
+### `GET /api/projects/:id/visibility?days=30|90`
+Share-of-voice style score per day. Each ranked keyword contributes a
+weight from a CTR curve normalized so position 1 = 1.0; the score is the
+sum as a percentage of all tracked keywords (100 = everything ranks #1).
+Includes the project's annotations for chart markers.
+
+### `GET /api/projects/:id/cannibalization`
+Queries where ≥2 different URLs had desktop rankings in the last 14 days.
+Groups are sorted by impressions at stake; pages inside a group by
+position (best first — treat it as the "primary" page).
+
+---
+
+## Annotations
+
+### `GET /api/projects/:id/annotations`
+All annotations, newest first: `{ id, date: "YYYY-MM-DD", title, note }`.
+
+### `POST /api/projects/:id/annotations`
+Body: `{ "date": "2026-06-03", "title": "Rewrote titles", "note": "optional" }`.
+Returns 201 with the created row. Annotations show up as dashed vertical
+markers on the visibility chart and keyword trend modal.
+
+### `DELETE /api/annotations/:id`
+Removes one annotation.
+
+---
+
+## Site Health
+
+### `GET /api/projects/:id/index-status`
+Every distinct page path of the project with its cached URL Inspection
+result (`verdict`, `coverageState`, `lastCrawlTime`, …). Unchecked pages
+have `verdict: null`.
+
+### `POST /api/projects/:id/index-status`
+Runs live URL Inspection checks. Body `{ "urlPaths": ["/a", "/b"] }` checks
+those paths; an empty body checks the 25 stalest pages. Calls run
+sequentially (Google rejects parallel inspections) and results are cached.
+Quota: **2,000 inspections/day per property**.
+
+### `GET /api/projects/:id/pagespeed`
+Cached PageSpeed results for the project (one row per path + strategy).
+
+### `POST /api/projects/:id/pagespeed`
+Body: `{ "urlPaths": ["/"], "strategy": "mobile" | "desktop" }` (max 3
+paths per call — each audit takes 10–20s). Stores the Lighthouse
+performance score plus LCP/CLS/INP/FCP/TTFB. Works without an API key on
+the shared quota; set `PAGESPEED_API_KEY` for your own quota.
+
+---
+
+## Public sharing
+
+### `GET /api/projects/:id/share`
+Returns the project's active share link (`{ token, url, createdAt }`) or
+`null`.
+
+### `POST /api/projects/:id/share`
+Creates a new share token (revoking any previous one) and returns it.
+
+### `DELETE /api/projects/:id/share`
+Revokes all share links for the project — shared URLs stop working
+immediately.
+
+### `GET /api/share/:token` *(public — no auth)*
+Read-only dashboard payload for the public report page: project name,
+domain, overview stats, 30-day visibility, 30-day traffic series and the
+top 10 movers/drops. Returns 404 if the token was revoked. The 32-char
+random token is the only credential — treat the URL like a password.

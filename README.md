@@ -48,9 +48,17 @@ stores it in a local database, and shows you:
 ## Features
 
 - **Overview** — Top 10 / Top 20 / Top 50 counts, average position, position distribution chart
+- **Period comparison** — this week vs last week / this month vs last month across position, Top 3/10, clicks, impressions and CTR
+- **Visibility score** — a single share-of-voice style health number with a 30/90-day trend chart
+- **Annotations** — log site changes on a timeline and see them as markers on every chart
 - **All Keywords** — sortable, filterable table with desktop/mobile positions, 7-day change, sparkline trends
+- **Per-keyword trend chart** — click any keyword for a 30/90-day desktop + mobile position chart
+- **Pages view** — per-URL performance: keyword count, best/avg position, clicks, trend
+- **Insights** — clicks/impressions chart, CTR opportunities (high impressions + low CTR = fix the title/description) and keyword cannibalization detection
 - **Movers & Drops** — week-over-week improved and dropped keywords
 - **Mobile** — mobile vs desktop comparison with gap column
+- **Site Health** — Google index coverage per page (URL Inspection API) + PageSpeed / Core Web Vitals scores
+- **Public client dashboard** — shareable read-only report link, revocable anytime
 - **Alerts** — automatic alerts when a keyword moves more than 5 positions
 - **Live Sheet** — one-click export to a Google Sheet (keywords, movers, full history)
 - **CSV export**

@@ -7,6 +7,9 @@ import toast from "react-hot-toast";
 import OverviewStats from "@/components/project/OverviewStats";
 import PositionDistributionChart from "@/components/project/PositionDistributionChart";
 import TopKeywords from "@/components/project/TopKeywords";
+import ComparisonCard from "@/components/project/ComparisonCard";
+import VisibilityChart from "@/components/project/VisibilityChart";
+import AnnotationsPanel from "@/components/project/AnnotationsPanel";
 import {
   ChartSkeleton,
   StatRowSkeleton,
@@ -77,6 +80,15 @@ export default function OverviewPage() {
       className="space-y-6"
     >
       <OverviewStats stats={stats} domain={domain} />
+      <ComparisonCard projectId={Number(projectId)} />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+        <div className="xl:col-span-3">
+          <VisibilityChart projectId={Number(projectId)} />
+        </div>
+        <div className="xl:col-span-2">
+          <AnnotationsPanel projectId={Number(projectId)} />
+        </div>
+      </div>
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
         <div className="xl:col-span-3">
           <PositionDistributionChart distribution={stats.distribution} />

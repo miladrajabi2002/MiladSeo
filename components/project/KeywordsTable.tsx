@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -18,6 +18,7 @@ import PositionLegend from "@/components/ui/PositionLegend";
 import DeltaBadge from "@/components/ui/DeltaBadge";
 import Sparkline from "@/components/ui/Sparkline";
 import Modal from "@/components/ui/Modal";
+import KeywordTrendModal from "@/components/project/KeywordTrendModal";
 import { apiPatch, errorMessage } from "@/lib/client";
 import type { KeywordRow } from "@/lib/types";
 
@@ -100,6 +101,8 @@ export default function KeywordsTable({
   const [editing, setEditing] = useState<KeywordRow | null>(null);
   const [editGroup, setEditGroup] = useState("");
   const [saving, setSaving] = useState(false);
+  const [trendKeywordId, setTrendKeywordId] = useState<number | null>(null);
+  const closeTrend = useCallback(() => setTrendKeywordId(null), []);
 
   const groups = useMemo(
     () =>
@@ -283,7 +286,8 @@ export default function KeywordsTable({
                   delay: Math.min(index * 0.03, 0.5),
                   ease: "easeOut",
                 }}
-                className="group border-b border-border-base transition-colors last:border-0 hover:bg-bg-secondary"
+                onClick={() => setTrendKeywordId(row.id)}
+                className="group cursor-pointer border-b border-border-base transition-colors last:border-0 hover:bg-bg-secondary"
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -300,7 +304,8 @@ export default function KeywordsTable({
                     <button
                       type="button"
                       aria-label={`Edit group for ${row.text}`}
-                      onClick={() => {
+                      onClick={(event) => {
+                        event.stopPropagation();
                         setEditing(row);
                         setEditGroup(row.group ?? "");
                       }}
@@ -372,6 +377,13 @@ export default function KeywordsTable({
           </div>
         </div>
       ) : null}
+
+      {/* Per-keyword trend chart */}
+      <KeywordTrendModal
+        projectId={projectId}
+        keywordId={trendKeywordId}
+        onClose={closeTrend}
+      />
 
       {/* Edit group modal */}
       <Modal
