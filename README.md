@@ -143,8 +143,33 @@ To check: Search Console → select the property → **Settings** → **Users an
 
 To upgrade: click the three-dot menu next to your email → **Change permission** → **Full**.
 
-If the site belongs to someone else (a client), ask them to add your email as
-**Full User** or **Owner**.
+### Adding a client's or someone else's site
+
+You do **not** need the client's Google password, and you do **not** need a
+separate Google account. The dashboard connects with **one** Google account
+(yours), and any property that account can access shows up automatically — even
+if the site is owned by someone else.
+
+So to track a client's site, the client simply grants your Google account access
+to their existing Search Console property:
+
+1. The client opens [Search Console](https://search.google.com/search-console)
+   and selects **their** property.
+2. **Settings** → **Users and permissions** → **Add user**.
+3. They enter **the Google email you connected to this dashboard**.
+4. They set the permission level to **Full** (recommended) so the API works.
+   *Restricted* lets them see data in the GSC web UI but blocks the API.
+5. Click **Add**.
+
+That's it — no code changes, no extra login. Back in the dashboard click
+**Refresh** in the Add Project dialog and the client's site appears in the
+property dropdown, ready to add as a new project.
+
+> **Why one account works for many sites:** Search Console permissions are
+> per-property, not per-account. One Google login can hold Owner/Full access to
+> dozens of different sites owned by different people. The dashboard currently
+> stores a single Google connection, so every project is read through that one
+> authorized account.
 
 ### Step 3 — Set up Google Cloud OAuth
 

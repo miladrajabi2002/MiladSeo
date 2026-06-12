@@ -85,7 +85,77 @@ textarea {
   color: var(--text-primary);
 }
 
+/* Hide scrollbar but keep scroll functionality (horizontal tab nav etc.) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--text-muted);
+}
+
+/* Pulsing status dots (live indicators, alerts) */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-core {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.pulse-dot {
+  position: relative;
+  animation: pulse-core 1.8s ease-in-out infinite;
+}
+
+.pulse-dot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: inherit;
+  animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot,
+  .pulse-dot::before,
+  .blink-dot {
+    animation: none;
+  }
+}
+
+/* Soft on/off blink without the expanding ring */
+@keyframes blink-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.blink-dot {
+  animation: blink-soft 1.6s ease-in-out infinite;
 }

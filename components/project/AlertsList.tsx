@@ -65,7 +65,7 @@ export default function AlertsList({ alerts, onChanged }: AlertsListProps) {
             transition={{ duration: 0.4 }}
             className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
               alert.type === "jumped" ? "bg-accent-green" : "bg-accent-red"
-            }`}
+            } ${alert.isRead ? "" : "pulse-dot"}`}
           />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">

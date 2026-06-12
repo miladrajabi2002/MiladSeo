@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import OverviewStats from "@/components/project/OverviewStats";
 import PositionDistributionChart from "@/components/project/PositionDistributionChart";
+import TopKeywords from "@/components/project/TopKeywords";
 import {
   ChartSkeleton,
   StatRowSkeleton,
@@ -76,7 +77,14 @@ export default function OverviewPage() {
       className="space-y-6"
     >
       <OverviewStats stats={stats} domain={domain} />
-      <PositionDistributionChart distribution={stats.distribution} />
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+        <div className="xl:col-span-3">
+          <PositionDistributionChart distribution={stats.distribution} />
+        </div>
+        <div className="xl:col-span-2">
+          <TopKeywords keywords={stats.topKeywords} />
+        </div>
+      </div>
     </motion.div>
   );
 }
