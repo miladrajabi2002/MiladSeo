@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { FolderPlus, Plus, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, FolderPlus, Plus, RefreshCw } from "lucide-react";
 import ProjectCard from "@/components/dashboard/ProjectCard";
 import Modal from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -13,9 +13,17 @@ import type { ProjectSummary } from "@/lib/types";
 const LOCATIONS = ["Iran", "UAE", "Saudi Arabia", "Egypt", "UK", "USA", "Other"];
 
 interface GscSite {
-  siteUrl: string | null | undefined;
-  permissionLevel: string | null | undefined;
+  siteUrl: string;
+  permissionLevel: string;
+  eligible: boolean;
 }
+
+const PERMISSION_LABEL: Record<string, string> = {
+  siteOwner: "Owner",
+  siteFullUser: "Full User",
+  siteRestrictedUser: "Restricted",
+  siteUnverifiedUser: "Unverified",
+};
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
@@ -29,6 +37,7 @@ export default function ProjectsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [gscSites, setGscSites] = useState<GscSite[] | null>(null);
   const [loadingSites, setLoadingSites] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const load = useCallback(() => {
     apiGet<ProjectSummary[]>("/api/projects")
@@ -49,12 +58,18 @@ export default function ProjectsPage() {
 
   const openModal = useCallback(() => {
     setModalOpen(true);
+    setGuideOpen(false);
     fetchGscSites();
   }, [fetchGscSites]);
 
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setGscSites(null);
+    setGuideOpen(false);
+  }, []);
+
   useEffect(() => {
     load();
-    // Surface Google OAuth callback result
     const params = new URLSearchParams(window.location.search);
     const google = params.get("google");
     if (google === "connected") {
@@ -73,6 +88,7 @@ export default function ProjectsPage() {
       await apiPost("/api/projects", form);
       toast.success(`Project "${form.name}" created`);
       setModalOpen(false);
+      setGscSites(null);
       setForm({ name: "", domain: "", gscProperty: "", location: "Iran" });
       load();
       window.dispatchEvent(new Event("projects-changed"));
@@ -85,6 +101,9 @@ export default function ProjectsPage() {
 
   const inputClass =
     "mt-1 w-full rounded-lg border border-border-base bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent-blue";
+
+  const eligibleSites = gscSites?.filter((s) => s.eligible) ?? [];
+  const restrictedSites = gscSites?.filter((s) => !s.eligible) ?? [];
 
   return (
     <motion.div
@@ -126,8 +145,8 @@ export default function ProjectsPage() {
               Add your first project
             </h2>
             <p className="mt-1 max-w-sm text-sm text-text-secondary">
-              Connect a domain that is verified in Google Search Console and
-              start tracking its keyword rankings.
+              Connect a domain verified in Google Search Console and start
+              tracking its keyword rankings.
             </p>
             <button
               type="button"
@@ -152,7 +171,7 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setGscSites(null); }} title="Add Project">
+      <Modal open={modalOpen} onClose={closeModal} title="Add Project">
         <form onSubmit={(e) => void handleCreate(e)}>
           <label className="block text-sm font-medium text-text-secondary">
             Project name
@@ -176,6 +195,8 @@ export default function ProjectsPage() {
               className={inputClass}
             />
           </label>
+
+          {/* GSC property picker */}
           <div className="mt-4">
             <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-medium text-text-secondary">
@@ -191,7 +212,8 @@ export default function ProjectsPage() {
                 {loadingSites ? "Loading…" : "Refresh"}
               </button>
             </div>
-            {gscSites && gscSites.length > 0 ? (
+
+            {gscSites !== null && eligibleSites.length > 0 ? (
               <>
                 <select
                   required
@@ -200,15 +222,19 @@ export default function ProjectsPage() {
                   className={inputClass}
                 >
                   <option value="">— pick a property —</option>
-                  {gscSites.map((s) => (
-                    <option key={s.siteUrl ?? ""} value={s.siteUrl ?? ""}>
-                      {s.siteUrl}
+                  {eligibleSites.map((s) => (
+                    <option key={s.siteUrl} value={s.siteUrl}>
+                      {s.siteUrl} ({PERMISSION_LABEL[s.permissionLevel] ?? s.permissionLevel})
                     </option>
                   ))}
                 </select>
-                <span className="mt-1 block text-xs font-normal text-text-muted">
-                  Properties fetched from your connected Google account.
-                </span>
+                {restrictedSites.length > 0 && (
+                  <p className="mt-1 text-xs text-amber-500">
+                    {restrictedSites.length} site(s) hidden — your account has Restricted access to them
+                    and the Search Analytics API is blocked. To fix this, make yourself an Owner or Full User
+                    in Search Console &rarr; Settings &rarr; Users and permissions.
+                  </p>
+                )}
               </>
             ) : (
               <>
@@ -220,16 +246,79 @@ export default function ProjectsPage() {
                   placeholder="sc-domain:mysite.com"
                   className={inputClass}
                 />
-                <span className="mt-1 block text-xs font-normal text-text-muted">
+                <p className="mt-1 text-xs text-text-muted">
                   {loadingSites
                     ? "Fetching your Search Console properties…"
-                    : gscSites
-                    ? "No properties found — enter manually (sc-domain:mysite.com or https://mysite.com/)."
-                    : "Connect Google first or enter manually (sc-domain:mysite.com or https://mysite.com/)."}
-                </span>
+                    : gscSites !== null
+                    ? "No eligible properties found. Add and verify your site first (see guide below), then click Refresh."
+                    : "Connect Google first, or type manually: sc-domain:mysite.com or https://mysite.com/"}
+                </p>
               </>
             )}
           </div>
+
+          {/* GSC setup guide */}
+          <div className="mt-4 rounded-lg border border-border-base bg-bg-secondary">
+            <button
+              type="button"
+              onClick={() => setGuideOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-text-secondary"
+            >
+              <span>How to add your site to Search Console</span>
+              {guideOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+            {guideOpen && (
+              <div className="border-t border-border-base px-3 pb-3 pt-2 text-xs leading-relaxed text-text-secondary">
+                <ol className="space-y-2 list-decimal pl-4">
+                  <li>
+                    Open{" "}
+                    <a
+                      href="https://search.google.com/search-console"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 text-accent-blue underline underline-offset-2"
+                    >
+                      Google Search Console <ExternalLink size={10} />
+                    </a>{" "}
+                    with the same Google account you connected here.
+                  </li>
+                  <li>
+                    Click <strong>+ Add property</strong> (top-left dropdown).
+                  </li>
+                  <li>
+                    Choose property type:
+                    <ul className="mt-1 ml-3 space-y-1 list-disc">
+                      <li>
+                        <strong>Domain property</strong> (recommended) — covers all
+                        protocols and subdomains. Requires adding a DNS TXT record in
+                        your domain registrar. The GSC property string will be{" "}
+                        <code className="rounded bg-bg-primary px-1">sc-domain:yourdomain.com</code>.
+                      </li>
+                      <li>
+                        <strong>URL-prefix property</strong> — covers only one protocol
+                        and subdomain. Easier to verify (HTML file or meta tag). The
+                        property string is the full URL with trailing slash, e.g.{" "}
+                        <code className="rounded bg-bg-primary px-1">https://yourdomain.com/</code>.
+                      </li>
+                    </ul>
+                  </li>
+                  <li>Complete the verification steps Google shows you.</li>
+                  <li>
+                    Come back here and click <strong>Refresh</strong> — your new
+                    property will appear in the dropdown.
+                  </li>
+                </ol>
+                <p className="mt-2 rounded bg-amber-500/10 px-2 py-1.5 text-amber-500">
+                  <strong>Permission error?</strong> Your Google account must be{" "}
+                  <strong>Owner</strong> or <strong>Full User</strong> on the property.
+                  Go to Search Console &rarr; Settings &rarr; Users and permissions and
+                  check your access level. Restricted users cannot access Search
+                  Analytics data via the API.
+                </p>
+              </div>
+            )}
+          </div>
+
           <label className="mt-4 block text-sm font-medium text-text-secondary">
             Location
             <select
@@ -244,10 +333,11 @@ export default function ProjectsPage() {
               ))}
             </select>
           </label>
+
           <div className="mt-6 flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => { setModalOpen(false); setGscSites(null); }}
+              onClick={closeModal}
               className="rounded-lg border border-border-base px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
             >
               Cancel
