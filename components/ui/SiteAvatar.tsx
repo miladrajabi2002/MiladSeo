@@ -1,7 +1,5 @@
 "use client";
 
-import { Globe } from "lucide-react";
-
 interface SiteAvatarProps {
   domain: string;
   size?: number;
@@ -27,8 +25,9 @@ function hashString(value: string): number {
 }
 
 /**
- * Gradient tile with a globe icon; the gradient is derived from the domain
- * so each project keeps a stable, distinct color.
+ * Monogram tile: the site's initial on a gradient derived from the domain,
+ * so every project gets a stable, distinct identity — no network fetches,
+ * no generic globe.
  */
 export default function SiteAvatar({
   domain,
@@ -37,10 +36,11 @@ export default function SiteAvatar({
 }: SiteAvatarProps) {
   const cleaned = domain.replace(/^www\./, "");
   const gradient = GRADIENTS[hashString(cleaned) % GRADIENTS.length];
+  const initial = (cleaned[0] ?? "?").toUpperCase();
 
   return (
     <span
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl text-white shadow-card ${className}`}
+      className={`relative flex shrink-0 select-none items-center justify-center overflow-hidden rounded-xl text-white shadow-card ${className}`}
       style={{ width: size, height: size, background: gradient }}
     >
       {/* soft top highlight for depth */}
@@ -48,10 +48,28 @@ export default function SiteAvatar({
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0) 55%)",
+            "linear-gradient(180deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 55%)",
         }}
       />
-      <Globe size={Math.round(size * 0.48)} strokeWidth={1.9} />
+      <span
+        className="font-extrabold leading-none tracking-tight"
+        style={{
+          fontSize: Math.round(size * 0.46),
+          textShadow: "0 1px 2px rgba(0,0,0,0.25)",
+        }}
+      >
+        {initial}
+      </span>
+      {/* tiny accent dot — echoes the "live tracking" identity of the app */}
+      <span
+        className="absolute rounded-full bg-white/85"
+        style={{
+          width: Math.max(3, Math.round(size * 0.09)),
+          height: Math.max(3, Math.round(size * 0.09)),
+          right: Math.round(size * 0.14),
+          bottom: Math.round(size * 0.14),
+        }}
+      />
     </span>
   );
 }

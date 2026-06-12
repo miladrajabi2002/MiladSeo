@@ -9,9 +9,11 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  /** Use for chart-heavy content that needs more room than the default max-w-md */
+  wide?: boolean;
 }
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function Modal({ open, onClose, title, children, wide = false }: ModalProps) {
   useEffect(() => {
     if (!open) return;
     const handler = (event: KeyboardEvent) => {
@@ -38,7 +40,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative w-full max-w-md rounded-2xl border border-border-base bg-bg-card p-6 shadow-card-hover"
+            className={`relative w-full ${wide ? "max-w-3xl" : "max-w-md"} rounded-2xl border border-border-base bg-bg-card p-6 shadow-card-hover`}
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-text-primary">{title}</h2>

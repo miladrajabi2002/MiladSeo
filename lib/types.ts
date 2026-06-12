@@ -105,5 +105,156 @@ export interface HistoryMatrix {
   rows: { text: string; positions: (number | null)[] }[];
 }
 
+/** One day of history for a single keyword (trend modal) */
+export interface KeywordHistoryPoint {
+  date: string;
+  desktopPos: number | null;
+  mobilePos: number | null;
+  clicks: number;
+  impressions: number;
+}
+
+export interface KeywordHistory {
+  id: number;
+  text: string;
+  urlPath: string | null;
+  group: string | null;
+  points: KeywordHistoryPoint[];
+  annotations: AnnotationRow[];
+}
+
+/** Aggregate metrics for one period of the comparison view */
+export interface PeriodStats {
+  label: string;
+  avgPosition: number | null;
+  top3: number;
+  top10: number;
+  clicks: number;
+  impressions: number;
+  ctr: number | null;
+}
+
+export interface ComparisonData {
+  range: "week" | "month";
+  current: PeriodStats;
+  previous: PeriodStats;
+}
+
+export interface TrafficPoint {
+  date: string;
+  clicks: number;
+  impressions: number;
+  ctr: number | null;
+}
+
+export interface OpportunityRow {
+  id: number;
+  text: string;
+  urlPath: string | null;
+  group: string | null;
+  position: number | null;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  /** rough CTR expected for this position; ctr far below this = opportunity */
+  expectedCtr: number;
+}
+
+export interface TrafficData {
+  series: TrafficPoint[];
+  totalClicks: number;
+  totalImpressions: number;
+  avgCtr: number | null;
+  opportunities: OpportunityRow[];
+}
+
+export interface PageRow {
+  urlPath: string;
+  keywordCount: number;
+  bestPosition: number | null;
+  avgPosition: number | null;
+  clicks: number;
+  impressions: number;
+  /** avg position over the last up-to-14 days, oldest first */
+  trend: number[];
+  /** change of avg position vs ~7 days ago; positive = improved */
+  change: number | null;
+  topKeywords: { id: number; text: string; position: number | null }[];
+}
+
+export interface VisibilityPoint {
+  date: string;
+  /** 0-100 share-of-voice style score */
+  score: number;
+}
+
+export interface VisibilityData {
+  series: VisibilityPoint[];
+  current: number | null;
+  /** score change vs ~7 days ago */
+  weekChange: number | null;
+  annotations: AnnotationRow[];
+}
+
+export interface CannibalizationGroup {
+  text: string;
+  /** pages competing for this query, best position first */
+  pages: {
+    keywordId: number;
+    urlPath: string;
+    position: number | null;
+    clicks: number;
+    impressions: number;
+  }[];
+}
+
+export interface AnnotationRow {
+  id: number;
+  date: string;
+  title: string;
+  note: string | null;
+}
+
+export interface IndexStatusRow {
+  urlPath: string;
+  verdict: string | null;
+  coverageState: string | null;
+  indexingState: string | null;
+  robotsState: string | null;
+  fetchState: string | null;
+  lastCrawlTime: string | null;
+  googleCanonical: string | null;
+  checkedAt: string | null;
+}
+
+export interface PageSpeedRow {
+  urlPath: string;
+  strategy: "mobile" | "desktop";
+  score: number;
+  lcpMs: number | null;
+  cls: number | null;
+  inpMs: number | null;
+  fcpMs: number | null;
+  ttfbMs: number | null;
+  checkedAt: string;
+}
+
+export interface ShareLinkInfo {
+  token: string;
+  url: string;
+  createdAt: string;
+}
+
+/** Everything the public read-only dashboard needs in one payload */
+export interface PublicDashboard {
+  projectName: string;
+  domain: string;
+  lastSyncAt: string | null;
+  overview: OverviewStats;
+  visibility: VisibilityData;
+  traffic: TrafficPoint[];
+  movers: MoversData;
+}
+
 export type ApiSuccess<T> = { data: T };
 export type ApiError = { error: string; code: string };
