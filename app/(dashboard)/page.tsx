@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { FolderPlus, Plus } from "lucide-react";
+import { FolderPlus, Plus, RefreshCw } from "lucide-react";
 import ProjectCard from "@/components/dashboard/ProjectCard";
 import Modal from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -11,6 +11,11 @@ import { apiGet, apiPost, errorMessage } from "@/lib/client";
 import type { ProjectSummary } from "@/lib/types";
 
 const LOCATIONS = ["Iran", "UAE", "Saudi Arabia", "Egypt", "UK", "USA", "Other"];
+
+interface GscSite {
+  siteUrl: string | null | undefined;
+  permissionLevel: string | null | undefined;
+}
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectSummary[] | null>(null);
@@ -22,6 +27,8 @@ export default function ProjectsPage() {
     location: "Iran",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [gscSites, setGscSites] = useState<GscSite[] | null>(null);
+  const [loadingSites, setLoadingSites] = useState(false);
 
   const load = useCallback(() => {
     apiGet<ProjectSummary[]>("/api/projects")
@@ -31,6 +38,19 @@ export default function ProjectsPage() {
         setProjects([]);
       });
   }, []);
+
+  const fetchGscSites = useCallback(() => {
+    setLoadingSites(true);
+    apiGet<GscSite[]>("/api/gsc/sites")
+      .then((sites) => setGscSites(sites))
+      .catch(() => setGscSites([]))
+      .finally(() => setLoadingSites(false));
+  }, []);
+
+  const openModal = useCallback(() => {
+    setModalOpen(true);
+    fetchGscSites();
+  }, [fetchGscSites]);
 
   useEffect(() => {
     load();
@@ -81,7 +101,7 @@ export default function ProjectsPage() {
         </div>
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
+          onClick={openModal}
           className="flex items-center gap-2 rounded-lg bg-accent-blue px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
         >
           <Plus size={16} />
@@ -111,7 +131,7 @@ export default function ProjectsPage() {
             </p>
             <button
               type="button"
-              onClick={() => setModalOpen(true)}
+              onClick={openModal}
               className="mt-6 flex items-center gap-2 rounded-lg bg-accent-blue px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
             >
               <Plus size={16} />
@@ -132,7 +152,7 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Add Project">
+      <Modal open={modalOpen} onClose={() => { setModalOpen(false); setGscSites(null); }} title="Add Project">
         <form onSubmit={(e) => void handleCreate(e)}>
           <label className="block text-sm font-medium text-text-secondary">
             Project name
@@ -156,21 +176,60 @@ export default function ProjectsPage() {
               className={inputClass}
             />
           </label>
-          <label className="mt-4 block text-sm font-medium text-text-secondary">
-            GSC Property URL
-            <input
-              type="text"
-              required
-              value={form.gscProperty}
-              onChange={(e) => setForm({ ...form, gscProperty: e.target.value })}
-              placeholder="sc-domain:mysite.com"
-              className={inputClass}
-            />
-            <span className="mt-1 block text-xs font-normal text-text-muted">
-              Use sc-domain:mysite.com for domain properties or
-              https://mysite.com/ for URL-prefix properties.
-            </span>
-          </label>
+          <div className="mt-4">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-sm font-medium text-text-secondary">
+                GSC Property
+              </span>
+              <button
+                type="button"
+                onClick={fetchGscSites}
+                disabled={loadingSites}
+                className="flex items-center gap-1 text-xs text-accent-blue hover:opacity-80 disabled:opacity-50"
+              >
+                <RefreshCw size={11} className={loadingSites ? "animate-spin" : ""} />
+                {loadingSites ? "Loading…" : "Refresh"}
+              </button>
+            </div>
+            {gscSites && gscSites.length > 0 ? (
+              <>
+                <select
+                  required
+                  value={form.gscProperty}
+                  onChange={(e) => setForm({ ...form, gscProperty: e.target.value })}
+                  className={inputClass}
+                >
+                  <option value="">— pick a property —</option>
+                  {gscSites.map((s) => (
+                    <option key={s.siteUrl ?? ""} value={s.siteUrl ?? ""}>
+                      {s.siteUrl}
+                    </option>
+                  ))}
+                </select>
+                <span className="mt-1 block text-xs font-normal text-text-muted">
+                  Properties fetched from your connected Google account.
+                </span>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  required
+                  value={form.gscProperty}
+                  onChange={(e) => setForm({ ...form, gscProperty: e.target.value })}
+                  placeholder="sc-domain:mysite.com"
+                  className={inputClass}
+                />
+                <span className="mt-1 block text-xs font-normal text-text-muted">
+                  {loadingSites
+                    ? "Fetching your Search Console properties…"
+                    : gscSites
+                    ? "No properties found — enter manually (sc-domain:mysite.com or https://mysite.com/)."
+                    : "Connect Google first or enter manually (sc-domain:mysite.com or https://mysite.com/)."}
+                </span>
+              </>
+            )}
+          </div>
           <label className="mt-4 block text-sm font-medium text-text-secondary">
             Location
             <select
@@ -188,7 +247,7 @@ export default function ProjectsPage() {
           <div className="mt-6 flex justify-end gap-2">
             <button
               type="button"
-              onClick={() => setModalOpen(false)}
+              onClick={() => { setModalOpen(false); setGscSites(null); }}
               className="rounded-lg border border-border-base px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:text-text-primary"
             >
               Cancel
