@@ -174,12 +174,13 @@ Certbot rewrites the Nginx config for HTTPS and installs auto-renewal.
 
 ## Step 10 — Google Cloud Setup
 
-Follow [GOOGLE_SETUP.md](GOOGLE_SETUP.md) to create OAuth credentials, then:
+Follow [GOOGLE_SETUP.md](GOOGLE_SETUP.md) to:
 
-1. Log in to the dashboard
-2. Click **Connect Google** in the header
-3. Complete the consent flow — the refresh token is saved automatically
-4. Open a project and click **Sync Now**
+1. Create OAuth credentials and fill in the `.env` Google variables
+2. Add and verify your site in Google Search Console (Section 7)
+3. Confirm your account has **Owner** or **Full User** access on the property (Section 8)
+4. Log in to the dashboard, click **Connect Google**, complete the consent flow
+5. Click **Add Project** — pick your property from the dropdown — then **Sync Now**
 
 ---
 
