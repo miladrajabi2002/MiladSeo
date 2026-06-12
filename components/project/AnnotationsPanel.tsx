@@ -6,16 +6,15 @@ import toast from "react-hot-toast";
 import { CalendarDays, FileText, Plus, StickyNote, Trash2 } from "lucide-react";
 import { apiDelete, apiGet, apiPost, errorMessage } from "@/lib/client";
 import { useCalendar } from "@/contexts/CalendarContext";
-import { formatDateShort, formatDateLong, todayTehranISO, gregToShamsiLabel } from "@/lib/jalaali";
+import { formatDateShort, formatDateLong } from "@/lib/jalaali";
+import DatePicker from "@/components/ui/DatePicker";
 import type { AnnotationRow } from "@/lib/types";
 
 export default function AnnotationsPanel({ projectId }: { projectId: number }) {
   const { calendar } = useCalendar();
   const [annotations, setAnnotations] = useState<AnnotationRow[] | null>(null);
   const [adding, setAdding] = useState(false);
-  const [date, setDate] = useState(() =>
-    calendar === "shamsi" ? todayTehranISO() : new Date().toISOString().substring(0, 10)
-  );
+  const [date, setDate] = useState(() => new Date().toISOString().substring(0, 10));
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -29,15 +28,6 @@ export default function AnnotationsPanel({ projectId }: { projectId: number }) {
   useEffect(() => {
     load();
   }, [load]);
-
-  // Keep default date in sync with calendar mode
-  useEffect(() => {
-    setDate(
-      calendar === "shamsi"
-        ? todayTehranISO()
-        : new Date().toISOString().substring(0, 10)
-    );
-  }, [calendar]);
 
   const handleAdd = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -120,19 +110,13 @@ export default function AnnotationsPanel({ projectId }: { projectId: number }) {
               <div className="space-y-1">
                 <label className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                   <CalendarDays size={10} />
-                  Date
-                  {calendar === "shamsi" && (
-                    <span className="ml-auto normal-case font-normal text-accent-blue">
-                      شمسی: {gregToShamsiLabel(date)}
-                    </span>
-                  )}
+                  {calendar === "shamsi" ? "تاریخ" : "Date"}
                 </label>
-                <input
-                  type="date"
-                  required
+                <DatePicker
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-lg border border-border-base bg-bg-card px-3 py-2 text-xs text-text-primary outline-none transition-colors focus:border-accent-blue focus:ring-2 focus:ring-accent-blue/10"
+                  onChange={setDate}
+                  mode={calendar}
+                  required
                 />
               </div>
 
