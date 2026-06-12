@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import toast from "react-hot-toast";
-import { Download, RefreshCw, Sheet } from "lucide-react";
+import { Download, RefreshCw } from "lucide-react";
 import TabNav from "@/components/layout/TabNav";
+import SiteAvatar from "@/components/ui/SiteAvatar";
 import { apiGet, apiPost, errorMessage } from "@/lib/client";
 
 interface ProjectDetail {
@@ -18,20 +19,6 @@ interface ProjectDetail {
   lastSyncAt: string | null;
   keywordCount: number;
   unreadAlerts: number;
-}
-
-function domainInitials(domain: string): string {
-  const cleaned = domain.replace(/^www\./, "");
-  const parts = cleaned.split(".");
-  const main = parts[0] ?? "";
-  const tld = parts.length > 1 ? parts[parts.length - 1] : "";
-  const initials = main
-    .split(/[-_]/)
-    .map((word) => word.charAt(0))
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-  return tld ? `${initials}-${tld.toUpperCase()}` : initials;
 }
 
 export default function ProjectLayout({
@@ -114,9 +101,11 @@ export default function ProjectLayout({
         className="flex flex-wrap items-center justify-between gap-3"
       >
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-blue text-xs font-bold text-white">
-            {project ? domainInitials(project.domain) : "…"}
-          </span>
+          {project ? (
+            <SiteAvatar domain={project.domain} size={44} />
+          ) : (
+            <span className="h-11 w-11 animate-pulse rounded-xl bg-bg-secondary" />
+          )}
           <div>
             <h1 className="text-lg font-bold text-text-primary">
               {project?.domain ?? "Loading…"}
@@ -140,10 +129,9 @@ export default function ProjectLayout({
             type="button"
             onClick={() => void handleLiveSheet()}
             disabled={sheetLoading}
-            className="flex items-center gap-2 rounded-lg border border-accent-green bg-transparent px-3 py-1.5 text-xs font-semibold text-accent-green transition-colors hover:bg-[rgba(34,197,94,0.1)] disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg border-2 border-accent-green bg-transparent px-3 py-1 text-xs font-semibold text-accent-green transition-colors hover:bg-[rgba(34,197,94,0.1)] disabled:opacity-50"
           >
-            <span className="pulse-dot h-1.5 w-1.5 shrink-0 rounded-full bg-accent-green" />
-            <Sheet size={13} />
+            <span className="blink-dot h-1.5 w-1.5 shrink-0 rounded-full bg-accent-green" />
             {sheetLoading ? "Updating…" : "Live Sheet"}
           </button>
           <a

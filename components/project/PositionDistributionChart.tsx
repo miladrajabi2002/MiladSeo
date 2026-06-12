@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { TooltipProps } from "recharts";
 import { BarChart3 } from "lucide-react";
+import PositionLegend from "@/components/ui/PositionLegend";
 import type { DistributionBucket } from "@/lib/types";
 
 function ChartTooltip({
@@ -75,13 +76,16 @@ export default function PositionDistributionChart({
             Google
           </p>
         </div>
-        <div className="rounded-lg border border-border-base bg-bg-secondary px-3 py-1.5 text-right">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-            In Top 10
-          </p>
-          <p className="text-sm font-bold tabular-nums text-accent-green">
-            {top10Pct}%
-          </p>
+        <div className="flex items-center gap-2">
+          <div className="rounded-lg border border-border-base bg-bg-secondary px-3 py-1.5 text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+              In Top 10
+            </p>
+            <p className="text-sm font-bold tabular-nums text-accent-green">
+              {top10Pct}%
+            </p>
+          </div>
+          <PositionLegend />
         </div>
       </div>
 

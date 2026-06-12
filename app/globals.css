@@ -129,7 +129,23 @@ textarea::placeholder {
 
 @media (prefers-reduced-motion: reduce) {
   .pulse-dot,
-  .pulse-dot::before {
+  .pulse-dot::before,
+  .blink-dot {
     animation: none;
   }
+}
+
+/* Soft on/off blink without the expanding ring */
+@keyframes blink-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.blink-dot {
+  animation: blink-soft 1.6s ease-in-out infinite;
 }

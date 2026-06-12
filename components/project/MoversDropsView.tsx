@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import GroupBadge from "@/components/ui/Badge";
 import Sparkline from "@/components/ui/Sparkline";
 import type { MoversData } from "@/lib/types";
@@ -15,8 +16,11 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
         transition={{ duration: 0.35, ease: "easeOut" }}
         className="overflow-hidden rounded-xl border border-border-base bg-bg-card shadow-card"
       >
-        <h3 className="border-b border-border-base px-4 py-3 text-sm font-bold text-accent-green">
-          🚀 Improved Keywords
+        <h3 className="flex items-center gap-2 border-b border-border-base px-4 py-3 text-sm font-bold text-accent-green">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[rgba(34,197,94,0.12)]">
+            <TrendingUp size={14} />
+          </span>
+          Improved Keywords
         </h3>
         {movers.improved.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-text-muted">
@@ -81,8 +85,11 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
         transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
         className="overflow-hidden rounded-xl border border-border-base bg-bg-card shadow-card"
       >
-        <h3 className="border-b border-border-base px-4 py-3 text-sm font-bold text-accent-red">
-          🔴 Dropped Keywords
+        <h3 className="flex items-center gap-2 border-b border-border-base px-4 py-3 text-sm font-bold text-accent-red">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[rgba(239,68,68,0.12)]">
+            <TrendingDown size={14} />
+          </span>
+          Dropped Keywords
         </h3>
         {movers.dropped.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-text-muted">

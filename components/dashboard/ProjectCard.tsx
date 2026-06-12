@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 import { MapPin, RefreshCw, Trash2 } from "lucide-react";
 import AnimatedNumber from "@/components/ui/AnimatedNumber";
+import SiteAvatar from "@/components/ui/SiteAvatar";
 import { apiDelete, apiPost, errorMessage } from "@/lib/client";
 import type { ProjectSummary } from "@/lib/types";
 
@@ -63,11 +64,14 @@ export default function ProjectCard({ project, onChanged }: ProjectCardProps) {
       className="cursor-pointer rounded-2xl border border-border-base bg-bg-card p-5 shadow-card transition-shadow hover:shadow-card-hover"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate text-xl font-bold text-text-primary">
-            {project.domain}
-          </h3>
-          <p className="truncate text-sm text-text-secondary">{project.name}</p>
+        <div className="flex min-w-0 items-center gap-3">
+          <SiteAvatar domain={project.domain} size={40} />
+          <div className="min-w-0">
+            <h3 className="truncate text-xl font-bold text-text-primary">
+              {project.domain}
+            </h3>
+            <p className="truncate text-sm text-text-secondary">{project.name}</p>
+          </div>
         </div>
         <span className="flex shrink-0 items-center gap-1 rounded-full bg-bg-secondary px-2 py-0.5 text-xs font-medium text-text-secondary">
           <MapPin size={12} />

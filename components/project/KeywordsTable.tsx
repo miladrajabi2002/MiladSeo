@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import GroupBadge from "@/components/ui/Badge";
 import PositionBadge from "@/components/ui/PositionBadge";
+import PositionLegend from "@/components/ui/PositionLegend";
 import DeltaBadge from "@/components/ui/DeltaBadge";
 import Sparkline from "@/components/ui/Sparkline";
 import Modal from "@/components/ui/Modal";
@@ -240,6 +241,7 @@ export default function KeywordsTable({
           <option value="dropped">Dropped</option>
           <option value="stable">Stable</option>
         </select>
+        <PositionLegend />
       </div>
 
       {/* Table */}
