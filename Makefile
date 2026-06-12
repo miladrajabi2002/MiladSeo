@@ -6,8 +6,9 @@ install:
 migrate:
 	npx prisma migrate deploy
 
+# Force development mode even if the shell or .env sets NODE_ENV=production
 dev:
-	npx tsx server.ts
+	NODE_ENV=development npx tsx server.ts
 
 build:
 	npm run build
