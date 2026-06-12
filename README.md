@@ -1,23 +1,64 @@
 # SEO Dashboard — Personal Keyword Rank Tracker
 
-A complete, self-hosted SEO dashboard for tracking keyword rankings across
-multiple sites, powered by the **free Google Search Console API**. Single
-admin, multi-project, dark/light theme, animated UI.
+A self-hosted dashboard for tracking keyword rankings across multiple sites,
+powered by the **free Google Search Console API**. Single admin, multi-project,
+dark/light theme, animated UI.
 
-![Dashboard screenshot placeholder](docs/screenshots/dashboard.png)
-![Keywords table screenshot placeholder](docs/screenshots/keywords.png)
+> **Persian version:** [README.fa.md](README.fa.md)
+
+---
+
+## What is this and why does it matter?
+
+### SEO in one paragraph
+
+When someone searches Google for "cheap flights to Kish", Google shows a list
+of websites. **SEO (Search Engine Optimization)** is everything you do to appear
+higher in that list. The higher you rank, the more clicks and visitors you get.
+Your position in Google results is called your **rank** or **position** — position 1
+is the very top, lower numbers are better.
+
+### What is Google Search Console?
+
+A **free tool by Google** that tells you how your site performs in Google search:
+
+- Which keywords people searched to find your site
+- What position your site holds for each keyword
+- How many people saw your site (**Impressions**) and how many clicked (**Clicks**)
+
+The problem: Search Console's own interface is raw and limited — it shows no
+trend history, no alerts when rankings drop, and no way to compare multiple
+sites side by side.
+
+### What this dashboard does
+
+Every day at 4 AM it automatically pulls 30 days of Search Console data,
+stores it in a local database, and shows you:
+
+| Tab | What it shows | Why it's useful |
+|---|---|---|
+| **Overview** | Average position, clicks, impressions, trend chart | At a glance: is my site improving or declining? |
+| **Keywords** | Every keyword you rank for + position, clicks, 7-day change | Know which keywords you own and which need work |
+| **Movers & Drops** | Keywords that moved up or down significantly | Spot wins and problems instantly |
+| **Mobile** | Mobile vs desktop position comparison | Google prioritises mobile — catch gaps before they hurt |
+| **Alerts** | Auto-alert when any keyword drops more than 5 positions | No need to check daily — it notifies you |
+
+---
 
 ## Features
 
-- 📊 **Overview** — Top 10 / Top 20 / Top 50 counts, average position, position distribution chart
-- 🔑 **All Keywords** — sortable, filterable table with desktop/mobile positions, 7-day change, sparkline trends
-- 🚀 **Movers & Drops** — week-over-week improved and dropped keywords
-- 📱 **Mobile** — mobile vs desktop comparison with a phone-mockup summary card
-- 🔔 **Alerts** — automatic alerts when a keyword moves more than 5 positions
-- 📄 **Live Sheet** — one-click export to a Google Sheet (keywords, movers, full history)
-- ⬇️ **CSV export**
-- ⏰ **Daily auto-sync** at 4:00 AM via built-in cron
-- 🌙 Dark/light theme (system-aware), fully animated with Framer Motion
+- **Overview** — Top 10 / Top 20 / Top 50 counts, average position, position distribution chart
+- **All Keywords** — sortable, filterable table with desktop/mobile positions, 7-day change, sparkline trends
+- **Movers & Drops** — week-over-week improved and dropped keywords
+- **Mobile** — mobile vs desktop comparison with gap column
+- **Alerts** — automatic alerts when a keyword moves more than 5 positions
+- **Live Sheet** — one-click export to a Google Sheet (keywords, movers, full history)
+- **CSV export**
+- **Daily auto-sync** at 4:00 AM via built-in cron
+- Dark/light theme (system-aware), fully animated with Framer Motion
+- Multi-project — track as many sites as you want
+
+---
 
 ## Tech Stack
 
@@ -29,35 +70,144 @@ admin, multi-project, dark/light theme, animated UI.
 - googleapis (Search Console + Sheets)
 - node-cron inside a custom Next.js server
 
-## Prerequisites
+---
 
-- Node.js 18.17+ (20 LTS recommended)
-- A site verified in [Google Search Console](https://search.google.com/search-console)
+## Getting started
+
+### Prerequisites
+
+- Node.js 20 LTS
+- A site **verified** in Google Search Console (see [Step 1](#step-1--add-your-site-to-search-console) below)
 - A Google Cloud project with OAuth credentials (see [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md))
 
-## Quick Start
+### Quick start (local dev)
 
 ```bash
-cp .env.example .env          # then fill in the values
+cp .env.example .env          # fill in required values
 make install                  # npm install + prisma generate
 npx prisma migrate dev        # create the SQLite database
 make hash-password PASSWORD=YourPassword123   # paste output into .env
-make dev                      # http://localhost:3000
+make dev                      # open http://localhost:3000
 ```
 
-Want demo data without connecting Google? Run `npx prisma db seed`.
+Want sample data without connecting Google? `npx prisma db seed`
+
+### Production (Ubuntu + PM2 + Nginx + SSL)
+
+Follow the full guide: [docs/INSTALLATION.md](docs/INSTALLATION.md)
+
+---
+
+## Step-by-step: from zero to first sync
+
+### Step 1 — Add your site to Search Console
+
+Before syncing, your site must be **verified** in Search Console under the same
+Google account you will connect to the dashboard.
+
+**Option A — Domain property (recommended)**
+
+Covers all subdomains and both http/https. The property string in the dashboard
+will be `sc-domain:yourdomain.com`.
+
+1. Open [search.google.com/search-console](https://search.google.com/search-console)
+2. Top-left dropdown → **Add property**
+3. Choose **Domain**, enter `yourdomain.com` → **Continue**
+4. Google gives you a DNS TXT record, e.g. `google-site-verification=XXXXX`
+5. Log in to your domain registrar (Cloudflare, Namecheap, etc.) and add a
+   new **TXT record** with that value
+6. Back in Search Console → **Verify** (usually instant on Cloudflare,
+   up to a few hours on other registrars)
+
+**Option B — URL-prefix property**
+
+Covers only the exact URL you register. Easier to verify (HTML file or meta tag).
+The property string will be `https://yourdomain.com/` (trailing slash required).
+
+### Step 2 — Check your permission level
+
+The Search Analytics API requires **Owner** or **Full User** access.
+**Restricted User** access lets you view data in the GSC web UI but blocks
+the API — you will see the error:
+```
+User does not have sufficient permission for site '...'
+```
+
+To check: Search Console → select the property → **Settings** → **Users and permissions**.
+
+| Level | API access | How you get it |
+|---|---|---|
+| **Owner** | Yes | You verified the property yourself |
+| **Full User** | Yes | Explicitly added at this level by an owner |
+| **Restricted User** | **No** | Default when added without specifying level |
+
+To upgrade: click the three-dot menu next to your email → **Change permission** → **Full**.
+
+If the site belongs to someone else (a client), ask them to add your email as
+**Full User** or **Owner**.
+
+### Step 3 — Set up Google Cloud OAuth
+
+Follow [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md) to create OAuth credentials
+and fill in the four `GOOGLE_*` variables in `.env`.
+
+### Step 4 — Connect Google in the dashboard
+
+1. Log in to the dashboard
+2. Click **Connect Google** in the header
+3. Sign in with the same Google account that has access to your Search Console
+   properties
+4. Approve the permissions (read Search Console data + create/edit Sheets)
+
+### Step 5 — Add a project
+
+1. Click **Add Project** on the home page
+2. Fill in the name and domain
+3. The **GSC Property** field shows a dropdown populated from your connected
+   account — only properties with Owner or Full User access are listed
+4. Select the property and click **Create Project**
+
+### Step 6 — Sync
+
+Click **Sync Now** on the project card. The first sync pulls 30 days of data
+(~30 API calls, may take a minute or two). After that, the 4 AM cron keeps
+everything up to date automatically.
+
+---
+
+## Understanding the data
+
+### Lower position = better
+
+Position 1 is the top organic result. GSC returns averages, so decimals like
+3.4 are normal.
+
+| Position | Colour |
+|---|---|
+| 1–3 | Green |
+| 4–10 | Blue |
+| 11–20 | Amber |
+| 21–50 | Gray |
+| 51+ | Red |
+
+### GSC data delay
+
+Search Console data has a **2–3 day lag**. A sync today retrieves data up to
+roughly the day before yesterday. This is normal Google behaviour — every rank
+tracker built on GSC has the same delay.
+
+### Keywords worth focusing on
+
+Keywords ranked **5–20** are the highest-opportunity ones: a small content
+improvement can move them to page one and multiply your clicks.
+
+---
 
 ## Documentation
 
-| Doc | Contents |
-| --- | --- |
+| File | Contents |
+|---|---|
 | [docs/INSTALLATION.md](docs/INSTALLATION.md) | Full Ubuntu 22.04 production setup (PM2, Nginx, SSL) |
-| [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md) | Google Cloud / OAuth step-by-step |
-| [docs/USAGE.md](docs/USAGE.md) | How to use every feature |
-| [docs/API.md](docs/API.md) | Every API endpoint with examples |
-
-## Note on GSC data delay
-
-Google Search Console data has a 2–3 day delay. The newest dates returned by
-a sync will always lag today by a couple of days — this is normal Google
-behavior, not a bug.
+| [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md) | Google Cloud / OAuth + Search Console permissions |
+| [docs/USAGE.md](docs/USAGE.md) | Every feature explained |
+| [docs/API.md](docs/API.md) | Every API endpoint with request/response examples |
