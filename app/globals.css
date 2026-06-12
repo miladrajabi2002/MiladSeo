@@ -85,6 +85,16 @@ textarea {
   color: var(--text-primary);
 }
 
+/* Hide scrollbar but keep scroll functionality (horizontal tab nav etc.) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: var(--text-muted);

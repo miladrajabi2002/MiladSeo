@@ -38,6 +38,7 @@ export default function ProjectsPage() {
   const [gscSites, setGscSites] = useState<GscSite[] | null>(null);
   const [loadingSites, setLoadingSites] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [clientGuideOpen, setClientGuideOpen] = useState(false);
 
   const load = useCallback(() => {
     apiGet<ProjectSummary[]>("/api/projects")
@@ -59,6 +60,7 @@ export default function ProjectsPage() {
   const openModal = useCallback(() => {
     setModalOpen(true);
     setGuideOpen(false);
+    setClientGuideOpen(false);
     fetchGscSites();
   }, [fetchGscSites]);
 
@@ -66,6 +68,7 @@ export default function ProjectsPage() {
     setModalOpen(false);
     setGscSites(null);
     setGuideOpen(false);
+    setClientGuideOpen(false);
   }, []);
 
   useEffect(() => {
@@ -314,6 +317,61 @@ export default function ProjectsPage() {
                   Go to Search Console &rarr; Settings &rarr; Users and permissions and
                   check your access level. Restricted users cannot access Search
                   Analytics data via the API.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Client / someone else's site guide */}
+          <div className="mt-3 rounded-lg border border-border-base bg-bg-secondary">
+            <button
+              type="button"
+              onClick={() => setClientGuideOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-text-secondary"
+            >
+              <span>Tracking a client&apos;s / someone else&apos;s site</span>
+              {clientGuideOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+            {clientGuideOpen && (
+              <div className="border-t border-border-base px-3 pb-3 pt-2 text-xs leading-relaxed text-text-secondary">
+                <p>
+                  You don&apos;t need the client&apos;s Google password or a second
+                  account. You connect <strong>one</strong> Google account (yours),
+                  and any property it can access appears here — even sites owned by
+                  others. Just have the client grant your account access:
+                </p>
+                <ol className="mt-2 space-y-1.5 list-decimal pl-4">
+                  <li>
+                    The client opens{" "}
+                    <a
+                      href="https://search.google.com/search-console"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 text-accent-blue underline underline-offset-2"
+                    >
+                      Search Console <ExternalLink size={10} />
+                    </a>{" "}
+                    and selects <strong>their</strong> property.
+                  </li>
+                  <li>
+                    <strong>Settings</strong> &rarr; <strong>Users and permissions</strong>{" "}
+                    &rarr; <strong>Add user</strong>.
+                  </li>
+                  <li>
+                    They enter <strong>the Google email you connected here</strong>.
+                  </li>
+                  <li>
+                    They set permission to <strong>Full</strong> (Restricted blocks the
+                    API), then click <strong>Add</strong>.
+                  </li>
+                  <li>
+                    Come back, click <strong>Refresh</strong> above — their site now
+                    appears in the dropdown.
+                  </li>
+                </ol>
+                <p className="mt-2 rounded bg-accent-blue/10 px-2 py-1.5 text-accent-blue">
+                  Search Console access is per-property, so one Google login can track
+                  many sites from many different owners.
                 </p>
               </div>
             )}

@@ -76,14 +76,14 @@ export default function PositionDistributionChart({
             Google
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg border border-border-base bg-bg-secondary px-3 py-1.5 text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-border-base bg-bg-secondary px-3 py-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
               In Top 10
-            </p>
-            <p className="text-sm font-bold tabular-nums text-accent-green">
+            </span>
+            <span className="text-sm font-bold tabular-nums text-accent-green">
               {top10Pct}%
-            </p>
+            </span>
           </div>
           <PositionLegend />
         </div>

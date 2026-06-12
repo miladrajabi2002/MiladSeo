@@ -14,7 +14,7 @@ export default function TabNav({ tabs }: { tabs: TabItem[] }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-border-base">
+    <nav className="no-scrollbar -mx-1 flex gap-1 overflow-x-auto border-b border-border-base px-1">
       {tabs.map((tab) => {
         const active = pathname === tab.href;
         return (

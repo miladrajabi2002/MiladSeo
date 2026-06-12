@@ -96,23 +96,54 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
             No dropped keywords this week. 🎉
           </p>
         ) : (
-          <ul>
-            {movers.dropped.map((row, index) => (
-              <motion.li
-                key={row.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  duration: 0.3,
-                  delay: Math.min(index * 0.03, 0.5),
-                  ease: "easeOut",
-                }}
-                className="border-b border-border-base px-4 py-2.5 text-sm font-medium text-text-primary last:border-0 hover:bg-bg-secondary"
-              >
-                {row.text}
-              </motion.li>
-            ))}
-          </ul>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border-base text-xs font-semibold uppercase tracking-wider text-text-muted">
+                  <th className="px-4 py-2">Keyword</th>
+                  <th className="px-4 py-2">Group</th>
+                  <th className="px-4 py-2">Prev</th>
+                  <th className="px-4 py-2">Now</th>
+                  <th className="px-4 py-2">Δ</th>
+                  <th className="px-4 py-2">Trend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {movers.dropped.map((row, index) => (
+                  <motion.tr
+                    key={row.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: Math.min(index * 0.03, 0.5),
+                      ease: "easeOut",
+                    }}
+                    className="border-b border-border-base last:border-0 hover:bg-bg-secondary"
+                  >
+                    <td className="max-w-[200px] truncate px-4 py-2.5 font-medium text-text-primary">
+                      {row.text}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <GroupBadge group={row.group} />
+                    </td>
+                    <td className="px-4 py-2.5 tabular-nums text-text-secondary">
+                      {row.prevPos.toFixed(1)}
+                    </td>
+                    <td className="px-4 py-2.5 font-bold tabular-nums text-accent-red">
+                      {row.nowPos.toFixed(1)}
+                    </td>
+                    <td className="px-4 py-2.5 font-semibold tabular-nums text-accent-red">
+                      ▼ {Math.abs(row.delta).toFixed(1)}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <Sparkline data={row.trend} />
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </motion.div>
     </div>

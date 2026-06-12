@@ -8,6 +8,18 @@ export interface ProjectSummary {
   avgPosition: number | null;
   lastSyncAt: string | null;
   createdAt: string;
+  /** keywords in the top 3 desktop positions */
+  top3: number;
+  /** keywords in the top 10 desktop positions */
+  top10: number;
+  /** keywords that improved week-over-week */
+  improved: number;
+  /** keywords that dropped week-over-week */
+  dropped: number;
+  /** unread alerts for this project */
+  unreadAlerts: number;
+  /** compact position distribution for the card mini-chart */
+  distribution: DistributionBucket[];
 }
 
 export interface KeywordRow {
