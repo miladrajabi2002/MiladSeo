@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  domain      String
+  gscProperty String // e.g. "sc-domain:example.com" or "https://example.com/"
+  location    String    @default("Iran")
+  sheetId     String? // Google Sheet id for the Live Sheet export
+  createdAt   DateTime  @default(now())
+  lastSyncAt  DateTime?
+  keywords    Keyword[]
+  alerts      Alert[]
+}
+
+model Keyword {
+  id        Int              @id @default(autoincrement())
+  text      String
+  urlPath   String?
+  group     String?
+  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+  rankings  KeywordRanking[]
+  createdAt DateTime         @default(now())
+
+  @@index([projectId])
+}
+
+model KeywordRanking {
+  id          Int      @id @default(autoincrement())
+  keyword     Keyword  @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  keywordId   Int
+  position    Float?
+  clicks      Int?
+  impressions Int?
+  ctr         Float?
+  device      String // "desktop" or "mobile"
+  date        DateTime @default(now())
+
+  @@index([keywordId, device, date])
+}
+
+model Alert {
+  id        Int      @id @default(autoincrement())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+  keyword   String
+  type      String // "jumped" or "dropped"
+  group     String?
+  prevPos   Float
+  nowPos    Float
+  delta     Float
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([projectId, isRead])
+}
+
+model SyncLog {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  status    String // "success" | "error"
+  message   String?
+  syncedAt  DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
