@@ -17,7 +17,7 @@ export default function CalendarToggle() {
             : "text-text-secondary hover:text-text-primary"
         }`}
       >
-        میلادی
+        Gregorian
       </button>
       <button
         type="button"
@@ -28,7 +28,7 @@ export default function CalendarToggle() {
             : "text-text-secondary hover:text-text-primary"
         }`}
       >
-        شمسی
+        Shamsi
       </button>
     </div>
   );
