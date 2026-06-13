@@ -151,7 +151,7 @@ function periodStats(label: string, rows: RankingSlice[]): PeriodStats {
     top10: latestPositions.filter((p) => p <= 10).length,
     clicks,
     impressions,
-    ctr: impressions > 0 ? round1((clicks / impressions) * 1000) / 10 : null,
+    ctr: impressions > 0 ? Math.round((clicks / impressions) * 1000) / 10 : null,
   };
 }
 
@@ -225,7 +225,7 @@ export async function getTrafficSeries(
       impressions: v.impressions,
       ctr:
         v.impressions > 0
-          ? round1((v.clicks / v.impressions) * 1000) / 10
+          ? Math.round((v.clicks / v.impressions) * 1000) / 10
           : null,
     }));
 }
@@ -306,8 +306,8 @@ export async function getTraffic(
       position: round1(k.lastPosition),
       impressions: k.impressions,
       clicks: k.clicks,
-      ctr: round1(ctr * 1000) / 10,
-      expectedCtr: round1(expected * 1000) / 10,
+      ctr: Math.round(ctr * 1000) / 10,
+      expectedCtr: Math.round(expected * 1000) / 10,
     });
   }
   opportunities.sort((a, b) => b.impressions - a.impressions);
@@ -318,7 +318,7 @@ export async function getTraffic(
     totalImpressions,
     avgCtr:
       totalImpressions > 0
-        ? round1((totalClicks / totalImpressions) * 1000) / 10
+        ? Math.round((totalClicks / totalImpressions) * 1000) / 10
         : null,
     opportunities: opportunities.slice(0, 50),
   };

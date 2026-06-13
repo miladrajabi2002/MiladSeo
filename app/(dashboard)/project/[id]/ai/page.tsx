@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import {
@@ -45,7 +45,10 @@ function scoreColor(score: number): string {
 
 export default function AiPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const projectId = params.id;
+  const autoRan = useRef(false);
 
   const [status, setStatus] = useState<AiConfigStatus | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -140,7 +143,7 @@ export default function AiPage() {
     }
   };
 
-  const handleRun = async () => {
+  const handleRun = useCallback(async () => {
     setRunning(true);
     setAnalysis(null);
     toast("Analysing your SEO data… this can take up to a minute", { icon: "🤖" });
@@ -153,7 +156,21 @@ export default function AiPage() {
     } finally {
       setRunning(false);
     }
-  };
+  }, [projectId]);
+
+  // Auto-run when arriving from the "AI Audit" button (?run=1)
+  useEffect(() => {
+    if (
+      !autoRan.current &&
+      status?.configured &&
+      !showForm &&
+      searchParams.get("run") === "1"
+    ) {
+      autoRan.current = true;
+      void handleRun();
+      router.replace(`/project/${projectId}/ai`);
+    }
+  }, [status, showForm, searchParams, handleRun, router, projectId]);
 
   return (
     <motion.div

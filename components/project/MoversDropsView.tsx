@@ -28,15 +28,15 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
+            <table className="w-full min-w-[440px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border-base text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  <th className="px-4 py-2">Keyword</th>
-                  <th className="px-4 py-2">Group</th>
-                  <th className="px-4 py-2">Prev</th>
-                  <th className="px-4 py-2">Now</th>
-                  <th className="px-4 py-2">Δ</th>
-                  <th className="px-4 py-2">Trend</th>
+                  <th className="px-3 py-2">Keyword</th>
+                  <th className="px-3 py-2">Group</th>
+                  <th className="px-3 py-2">Prev</th>
+                  <th className="px-3 py-2">Now</th>
+                  <th className="px-3 py-2">Δ</th>
+                  <th className="px-3 py-2">Trend</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,22 +52,22 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
                     }}
                     className="border-b border-border-base last:border-0 hover:bg-bg-secondary"
                   >
-                    <td className="max-w-[200px] truncate px-4 py-2.5 font-medium text-text-primary">
+                    <td className="max-w-[150px] truncate px-3 py-2.5 font-medium text-text-primary">
                       {row.text}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5">
                       <GroupBadge group={row.group} />
                     </td>
-                    <td className="px-4 py-2.5 tabular-nums text-text-secondary">
+                    <td className="px-3 py-2.5 tabular-nums text-text-secondary">
                       {row.prevPos.toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5 font-bold tabular-nums text-accent-green">
+                    <td className="px-3 py-2.5 font-bold tabular-nums text-accent-green">
                       {row.nowPos.toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5 font-semibold tabular-nums text-accent-green">
+                    <td className="px-3 py-2.5 font-semibold tabular-nums text-accent-green">
                       ▲ {row.delta.toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5">
                       <Sparkline data={row.trend} />
                     </td>
                   </motion.tr>
@@ -97,15 +97,15 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
           </p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
+            <table className="w-full min-w-[440px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border-base text-xs font-semibold uppercase tracking-wider text-text-muted">
-                  <th className="px-4 py-2">Keyword</th>
-                  <th className="px-4 py-2">Group</th>
-                  <th className="px-4 py-2">Prev</th>
-                  <th className="px-4 py-2">Now</th>
-                  <th className="px-4 py-2">Δ</th>
-                  <th className="px-4 py-2">Trend</th>
+                  <th className="px-3 py-2">Keyword</th>
+                  <th className="px-3 py-2">Group</th>
+                  <th className="px-3 py-2">Prev</th>
+                  <th className="px-3 py-2">Now</th>
+                  <th className="px-3 py-2">Δ</th>
+                  <th className="px-3 py-2">Trend</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,22 +121,22 @@ export default function MoversDropsView({ movers }: { movers: MoversData }) {
                     }}
                     className="border-b border-border-base last:border-0 hover:bg-bg-secondary"
                   >
-                    <td className="max-w-[200px] truncate px-4 py-2.5 font-medium text-text-primary">
+                    <td className="max-w-[150px] truncate px-3 py-2.5 font-medium text-text-primary">
                       {row.text}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5">
                       <GroupBadge group={row.group} />
                     </td>
-                    <td className="px-4 py-2.5 tabular-nums text-text-secondary">
+                    <td className="px-3 py-2.5 tabular-nums text-text-secondary">
                       {row.prevPos.toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5 font-bold tabular-nums text-accent-red">
+                    <td className="px-3 py-2.5 font-bold tabular-nums text-accent-red">
                       {row.nowPos.toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5 font-semibold tabular-nums text-accent-red">
+                    <td className="px-3 py-2.5 font-semibold tabular-nums text-accent-red">
                       ▼ {Math.abs(row.delta).toFixed(1)}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-3 py-2.5">
                       <Sparkline data={row.trend} />
                     </td>
                   </motion.tr>

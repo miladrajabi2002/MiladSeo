@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { Download, RefreshCw, Share2 } from "lucide-react";
+import { Download, RefreshCw, Share2, Sparkles } from "lucide-react";
 import { useCalendar } from "@/contexts/CalendarContext";
 import { formatDateShort } from "@/lib/jalaali";
 import TabNav from "@/components/layout/TabNav";
@@ -35,6 +35,13 @@ export default function ProjectLayout({
   const [syncing, setSyncing] = useState(false);
   const [sheetLoading, setSheetLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [aiConnected, setAiConnected] = useState(false);
+
+  useEffect(() => {
+    apiGet<{ configured: boolean }>("/api/settings/ai")
+      .then((s) => setAiConnected(s.configured))
+      .catch(() => setAiConnected(false));
+  }, []);
 
   const load = useCallback(() => {
     if (!projectId) return;
@@ -136,6 +143,16 @@ export default function ProjectLayout({
               ? formatDateShort(project.lastSyncAt.substring(0, 10), calendar)
               : "never"}
           </span>
+          {aiConnected ? (
+            <button
+              type="button"
+              onClick={() => router.push(`/project/${projectId}/ai?run=1`)}
+              className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-accent-blue to-violet-500 px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              <Sparkles size={13} />
+              AI Audit
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => void handleLiveSheet()}
