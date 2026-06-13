@@ -93,6 +93,7 @@ export default function ProjectLayout({
     { label: "Research", href: `${base}/research` },
     { label: "Pages", href: `${base}/pages` },
     { label: "Insights", href: `${base}/insights` },
+    { label: "Analytics", href: `${base}/analytics` },
     { label: "Movers & Drops", href: `${base}/movers` },
     { label: "Mobile", href: `${base}/mobile` },
     { label: "Site Health", href: `${base}/health` },

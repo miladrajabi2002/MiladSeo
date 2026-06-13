@@ -13,6 +13,7 @@ model Project {
   domain       String
   gscProperty  String // e.g. "sc-domain:example.com" or "https://example.com/"
   location     String            @default("Iran")
+  ga4PropertyId String? // Google Analytics 4 property id, e.g. "properties/123456789"
   sheetId      String? // Google Sheet id for the Live Sheet export
   createdAt    DateTime          @default(now())
   lastSyncAt   DateTime?

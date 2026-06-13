@@ -239,6 +239,40 @@ export interface PageSpeedRow {
   checkedAt: string;
 }
 
+// ---------------------------------------------------------------------------
+// Google Analytics 4
+// ---------------------------------------------------------------------------
+
+export interface Ga4Property {
+  property: string; // "properties/123456789"
+  displayName: string;
+  account: string;
+}
+
+export interface Ga4Point {
+  date: string;
+  sessions: number;
+  users: number;
+  pageviews: number;
+  conversions: number;
+}
+
+export interface Ga4Summary {
+  propertyId: string;
+  days: number;
+  totals: {
+    sessions: number;
+    users: number;
+    newUsers: number;
+    conversions: number;
+    avgSessionDuration: number;
+    bounceRate: number;
+  };
+  series: Ga4Point[];
+  channels: { channel: string; sessions: number }[];
+  topPages: { page: string; sessions: number; conversions: number; avgDuration: number }[];
+}
+
 export interface KeywordIdea {
   text: string;
   words: number;

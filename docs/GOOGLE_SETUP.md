@@ -76,8 +76,14 @@ Restart the app after editing `.env` (`pm2 restart seo-dashboard`).
    - *View Search Console data* (read-only)
    - *See, edit, create spreadsheets* (for the Live Sheet)
    - *See and manage files created by this app* (Drive)
+   - *View Google Analytics data* (read-only — for the Analytics tab)
 5. You're redirected back — the **refresh token is saved automatically** to
    the database. The header now shows "Google connected".
+
+> **Already connected before the Analytics tab existed?** The GA4 permission
+> was added later, so click the unplug icon next to "Google connected" to
+> disconnect, then **Connect Google** again to grant the new read-only
+> Analytics scope.
 
 ## 7. Add your site to Search Console
 

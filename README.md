@@ -57,7 +57,11 @@ stores it in a local database, and shows you:
 - **Insights** — clicks/impressions chart, CTR opportunities (high impressions + low CTR = fix the title/description) and keyword cannibalization detection
 - **Movers & Drops** — week-over-week improved and dropped keywords
 - **Mobile** — mobile vs desktop comparison with gap column
-- **Site Health** — Google index coverage per page (URL Inspection API) + PageSpeed / Core Web Vitals scores
+- **Site Health** — Google index coverage per page (URL Inspection API) + PageSpeed / Core Web Vitals scores + real-user Core Web Vitals history (Chrome UX Report)
+- **AI Audit** — connect a Claude or OpenAI API key and get an expert SEO audit: health score, prioritized recommendations, quick wins and risks
+- **Analytics** — link a Google Analytics 4 property to see sessions, users, conversions, channels and top landing pages next to your rankings
+- **On-Page checker** — inspect any URL's title, meta, headings, canonical, robots, Open Graph, schema, redirects, robots.txt, sitemap and broken links
+- **Keyword Research** — expand a seed keyword into real Google Autocomplete suggestions, localized to the project
 - **Public client dashboard** — shareable read-only report link, revocable anytime
 - **Alerts** — automatic alerts when a keyword moves more than 5 positions
 - **Live Sheet** — one-click export to a Google Sheet (keywords, movers, full history)

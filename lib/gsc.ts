@@ -8,6 +8,7 @@ export const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/webmasters.readonly",
   "https://www.googleapis.com/auth/spreadsheets",
   "https://www.googleapis.com/auth/drive.file",
+  "https://www.googleapis.com/auth/analytics.readonly",
 ];
 
 const REFRESH_TOKEN_KEY = "google_refresh_token";

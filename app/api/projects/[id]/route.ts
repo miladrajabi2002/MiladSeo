@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   fail,
@@ -43,7 +43,40 @@ export async function GET(
       createdAt: project.createdAt.toISOString(),
       keywordCount: project._count.keywords,
       unreadAlerts: project._count.alerts,
+      ga4PropertyId: project.ga4PropertyId,
     });
+  } catch (error) {
+    return serverError(error);
+  }
+}
+
+interface PatchProjectBody {
+  ga4PropertyId?: unknown;
+}
+
+/** PATCH updates editable project fields (currently the GA4 property link). */
+export async function PATCH(
+  request: NextRequest,
+  { params }: RouteParams
+): Promise<NextResponse> {
+  if (!(await isAuthenticated())) return unauthorized();
+  const id = parseId(params.id);
+  if (id === null) return fail("Invalid project id", "INVALID_ID", 422);
+  try {
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project) return notFound("Project");
+
+    const body = (await request.json()) as PatchProjectBody;
+    const data: { ga4PropertyId?: string | null } = {};
+    if (body.ga4PropertyId !== undefined) {
+      data.ga4PropertyId =
+        typeof body.ga4PropertyId === "string" && body.ga4PropertyId.trim()
+          ? body.ga4PropertyId.trim()
+          : null;
+    }
+
+    const updated = await prisma.project.update({ where: { id }, data });
+    return ok({ id: updated.id, ga4PropertyId: updated.ga4PropertyId });
   } catch (error) {
     return serverError(error);
   }
