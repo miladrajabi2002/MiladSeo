@@ -90,6 +90,7 @@ export default function ProjectLayout({
   const tabs = [
     { label: "Overview", href: base },
     { label: "All Keywords", href: `${base}/keywords` },
+    { label: "Research", href: `${base}/research` },
     { label: "Pages", href: `${base}/pages` },
     { label: "Insights", href: `${base}/insights` },
     { label: "Movers & Drops", href: `${base}/movers` },

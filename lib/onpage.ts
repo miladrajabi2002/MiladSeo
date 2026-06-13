@@ -106,6 +106,62 @@ async function checkRobotsAndSitemap(origin: string): Promise<{
   return { robotsTxt, sitemapUrls, sitemapUrlCount };
 }
 
+/** Extracts links from the page and checks each one's HTTP status (capped). */
+async function checkLinks(html: string, baseUrl: string): Promise<{
+  links: import("./types").LinkStatus[];
+  brokenCount: number;
+}> {
+  const base = new URL(baseUrl);
+  const found = new Set<string>();
+  for (const m of html.matchAll(/<a\b[^>]*\bhref\s*=\s*("([^"]*)"|'([^']*)')/gi)) {
+    const href = (m[2] ?? m[3] ?? "").trim();
+    if (!href || href.startsWith("#") || /^(mailto:|tel:|javascript:|data:)/i.test(href)) {
+      continue;
+    }
+    try {
+      found.add(new URL(href, base).toString().split("#")[0]);
+    } catch {
+      /* skip malformed href */
+    }
+  }
+
+  const urls = Array.from(found).slice(0, 40);
+  const links: import("./types").LinkStatus[] = [];
+
+  // Check in small concurrent batches to avoid hammering the target
+  for (let i = 0; i < urls.length; i += 8) {
+    const batch = urls.slice(i, i + 8);
+    const results = await Promise.all(
+      batch.map(async (url): Promise<import("./types").LinkStatus> => {
+        const internal = new URL(url).origin === base.origin;
+        try {
+          let res = await axios.head(url, {
+            timeout: 12_000,
+            maxRedirects: 5,
+            headers: { "User-Agent": UA },
+            validateStatus: () => true,
+          });
+          // Some servers reject HEAD — retry with a ranged GET
+          if (res.status === 405 || res.status === 501) {
+            res = await axios.get(url, {
+              timeout: 12_000,
+              maxRedirects: 5,
+              headers: { "User-Agent": UA, Range: "bytes=0-0" },
+              validateStatus: () => true,
+            });
+          }
+          return { url, status: res.status, internal, ok: res.status < 400 };
+        } catch {
+          return { url, status: 0, internal, ok: false };
+        }
+      })
+    );
+    links.push(...results);
+  }
+
+  return { links, brokenCount: links.filter((l) => !l.ok).length };
+}
+
 export async function auditPage(rawUrl: string): Promise<OnPageReport> {
   const startUrl = normalizeUrl(rawUrl);
   const { hops, finalUrl, finalStatus, html } = await followRedirects(startUrl);
@@ -147,7 +203,8 @@ export async function auditPage(rawUrl: string): Promise<OnPageReport> {
   const imgTags = Array.from(html.matchAll(/<img\b[^>]*>/gi));
   const imagesMissingAlt = imgTags.filter((m) => attr(m[0], "alt") === null).length;
 
-  const { robotsTxt, sitemapUrls, sitemapUrlCount } = await checkRobotsAndSitemap(origin);
+  const [{ robotsTxt, sitemapUrls, sitemapUrlCount }, { links, brokenCount }] =
+    await Promise.all([checkRobotsAndSitemap(origin), checkLinks(html, finalUrl)]);
 
   const metaDescription = metaContent(html, "name", "description");
 
@@ -181,5 +238,8 @@ export async function auditPage(rawUrl: string): Promise<OnPageReport> {
     robotsTxt,
     sitemapUrls,
     sitemapUrlCount,
+    links,
+    brokenLinkCount: brokenCount,
+    linksChecked: links.length,
   };
 }

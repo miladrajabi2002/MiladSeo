@@ -181,6 +181,54 @@ export default function OnPagePage() {
               />
             </div>
           </div>
+
+          {/* Links on the page */}
+          <div className="rounded-2xl border border-border-base bg-bg-card p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-text-primary">
+                Links on this page ({report.linksChecked} checked)
+              </h3>
+              <span
+                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  report.brokenLinkCount === 0
+                    ? "bg-accent-green/10 text-accent-green"
+                    : "bg-accent-red/10 text-accent-red"
+                }`}
+              >
+                {report.brokenLinkCount} broken
+              </span>
+            </div>
+            {report.linksChecked === 0 ? (
+              <p className="text-sm text-text-muted">No links found on this page.</p>
+            ) : report.brokenLinkCount === 0 ? (
+              <p className="text-sm text-text-secondary">
+                All {report.linksChecked} links respond OK. ✅
+              </p>
+            ) : (
+              <ul className="space-y-1.5">
+                {report.links
+                  .filter((l) => !l.ok)
+                  .map((l) => (
+                    <li key={l.url} className="flex items-center gap-2 text-sm">
+                      <span className="shrink-0 rounded bg-accent-red/10 px-1.5 py-0.5 text-[11px] font-bold text-accent-red">
+                        {l.status === 0 ? "ERR" : l.status}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-text-muted">
+                        {l.internal ? "internal" : "external"}
+                      </span>
+                      <a
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-text-secondary underline-offset-2 hover:text-text-primary hover:underline"
+                      >
+                        {l.url}
+                      </a>
+                    </li>
+                  ))}
+              </ul>
+            )}
+          </div>
         </div>
       ) : (
         <p className="rounded-xl border border-dashed border-border-base bg-bg-card p-6 text-center text-sm text-text-muted">

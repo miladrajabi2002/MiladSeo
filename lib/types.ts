@@ -239,6 +239,39 @@ export interface PageSpeedRow {
   checkedAt: string;
 }
 
+export interface KeywordIdea {
+  text: string;
+  words: number;
+  question: boolean;
+  /** true when this query is already a tracked keyword */
+  tracked?: boolean;
+}
+
+export interface KeywordResearch {
+  seed: string;
+  locale: string;
+  total: number;
+  ideas: KeywordIdea[];
+}
+
+export interface CruxPoint {
+  /** collection-period end date */
+  date: string;
+  /** p75 largest contentful paint (ms) */
+  lcp: number | null;
+  /** p75 interaction to next paint (ms) */
+  inp: number | null;
+  /** p75 cumulative layout shift (unitless) */
+  cls: number | null;
+}
+
+export interface CruxData {
+  origin: string;
+  formFactor: "PHONE" | "DESKTOP";
+  series: CruxPoint[];
+  latest: CruxPoint | null;
+}
+
 export interface ShareLinkInfo {
   token: string;
   url: string;
@@ -298,6 +331,13 @@ export interface RedirectHop {
   to: string | null;
 }
 
+export interface LinkStatus {
+  url: string;
+  status: number;
+  internal: boolean;
+  ok: boolean;
+}
+
 export interface OnPageReport {
   requestedUrl: string;
   finalUrl: string;
@@ -324,6 +364,9 @@ export interface OnPageReport {
   robotsTxt: boolean;
   sitemapUrls: string[];
   sitemapUrlCount: number | null;
+  links: LinkStatus[];
+  brokenLinkCount: number;
+  linksChecked: number;
 }
 
 export type ApiSuccess<T> = { data: T };
