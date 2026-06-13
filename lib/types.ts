@@ -288,5 +288,43 @@ export interface AiAnalysis {
   model: string;
 }
 
+// ---------------------------------------------------------------------------
+// On-page / technical checker
+// ---------------------------------------------------------------------------
+
+export interface RedirectHop {
+  url: string;
+  status: number;
+  to: string | null;
+}
+
+export interface OnPageReport {
+  requestedUrl: string;
+  finalUrl: string;
+  status: number;
+  redirects: RedirectHop[];
+  title: string | null;
+  titleLength: number;
+  metaDescription: string | null;
+  metaDescriptionLength: number;
+  canonical: string | null;
+  robotsMeta: string | null;
+  viewport: string | null;
+  lang: string | null;
+  h1: string[];
+  h1Count: number;
+  h2Count: number;
+  wordCount: number;
+  imageCount: number;
+  imagesMissingAlt: number;
+  og: { title: string | null; description: string | null; image: string | null };
+  twitterCard: string | null;
+  schemaCount: number;
+  schemaTypes: string[];
+  robotsTxt: boolean;
+  sitemapUrls: string[];
+  sitemapUrlCount: number | null;
+}
+
 export type ApiSuccess<T> = { data: T };
 export type ApiError = { error: string; code: string };
