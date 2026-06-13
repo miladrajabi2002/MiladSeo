@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { format, parseISO } from "date-fns";
 import { MousePointerClick } from "lucide-react";
+import { useCalendar } from "@/contexts/CalendarContext";
+import { formatDateShort, formatDateLong } from "@/lib/jalaali";
 import {
   Area,
   CartesianGrid,
@@ -23,12 +24,13 @@ interface TrafficChartProps {
 }
 
 function TrafficTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  const { calendar } = useCalendar();
   if (!active || !payload || payload.length === 0) return null;
   const point = payload[0].payload as TrafficPoint;
   return (
     <div className="rounded-lg border border-border-base bg-bg-card px-3 py-2 text-xs shadow-card-hover">
       <p className="font-semibold text-text-primary">
-        {format(parseISO(String(label)), "MMM d, yyyy")}
+        {formatDateLong(String(label), calendar)}
       </p>
       <p className="mt-0.5 text-accent-blue">{point.clicks} clicks</p>
       <p className="text-accent-yellow">
@@ -47,6 +49,7 @@ export default function TrafficChart({
   totalImpressions,
   avgCtr,
 }: TrafficChartProps) {
+  const { calendar } = useCalendar();
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -123,7 +126,7 @@ export default function TrafficChart({
               <XAxis
                 dataKey="date"
                 tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
-                tickFormatter={(d: string) => format(parseISO(d), "MM/dd")}
+                tickFormatter={(d: string) => formatDateShort(d, calendar)}
                 axisLine={{ stroke: "var(--border)" }}
                 tickLine={false}
                 minTickGap={24}

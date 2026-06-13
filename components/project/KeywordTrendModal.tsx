@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format, parseISO } from "date-fns";
+import { useCalendar } from "@/contexts/CalendarContext";
+import { formatDateShort, formatDateLong } from "@/lib/jalaali";
 import toast from "react-hot-toast";
 import {
   CartesianGrid,
@@ -27,6 +28,7 @@ interface KeywordTrendModalProps {
 }
 
 function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  const { calendar } = useCalendar();
   if (!active || !payload || payload.length === 0) return null;
   const point = payload[0].payload as {
     desktopPos: number | null;
@@ -37,7 +39,7 @@ function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) 
   return (
     <div className="rounded-lg border border-border-base bg-bg-card px-3 py-2 text-xs shadow-card-hover">
       <p className="font-semibold text-text-primary">
-        {format(parseISO(String(label)), "MMM d, yyyy")}
+        {formatDateLong(String(label), calendar)}
       </p>
       <p className="mt-1 text-accent-blue">
         Desktop: {point.desktopPos !== null ? point.desktopPos.toFixed(1) : "–"}
@@ -57,6 +59,7 @@ export default function KeywordTrendModal({
   keywordId,
   onClose,
 }: KeywordTrendModalProps) {
+  const { calendar } = useCalendar();
   const [days, setDays] = useState<30 | 90>(30);
   const [history, setHistory] = useState<KeywordHistory | null>(null);
 
@@ -133,7 +136,7 @@ export default function KeywordTrendModal({
               <XAxis
                 dataKey="date"
                 tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
-                tickFormatter={(d: string) => format(parseISO(d), "MM/dd")}
+                tickFormatter={(d: string) => formatDateShort(d, calendar)}
                 axisLine={{ stroke: "var(--border)" }}
                 tickLine={false}
                 minTickGap={24}

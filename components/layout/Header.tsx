@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import { LogOut, Menu, PlugZap } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import CalendarToggle from "@/components/ui/CalendarToggle";
 import { apiGet } from "@/lib/client";
 
 interface HeaderProps {
@@ -58,6 +59,7 @@ export default function Header({ onOpenMobileMenu }: HeaderProps) {
             Google connected
           </span>
         ) : null}
+        <CalendarToggle />
         <ThemeToggle />
         <button
           type="button"

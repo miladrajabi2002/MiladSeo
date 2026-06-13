@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import toast from "react-hot-toast";
 import { Download, RefreshCw, Share2 } from "lucide-react";
+import { useCalendar } from "@/contexts/CalendarContext";
+import { formatDateShort } from "@/lib/jalaali";
 import TabNav from "@/components/layout/TabNav";
 import SiteAvatar from "@/components/ui/SiteAvatar";
 import ShareModal from "@/components/project/ShareModal";
@@ -84,6 +85,7 @@ export default function ProjectLayout({
     }
   };
 
+  const { calendar } = useCalendar();
   const base = `/project/${projectId}`;
   const tabs = [
     { label: "Overview", href: base },
@@ -127,7 +129,7 @@ export default function ProjectLayout({
           <span className="text-xs text-text-muted">
             Last update:{" "}
             {project?.lastSyncAt
-              ? format(new Date(project.lastSyncAt), "MM/dd")
+              ? formatDateShort(project.lastSyncAt.substring(0, 10), calendar)
               : "never"}
           </span>
           <button
