@@ -190,7 +190,8 @@ Search Console خودش را بدهد:
 |---|---|
 | [docs/INSTALLATION.md](docs/INSTALLATION.md) | راه‌اندازی کامل Ubuntu 22.04 (PM2، Nginx، SSL) |
 | [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md) | ساخت OAuth در Google Cloud + تنظیم دسترسی Search Console |
-| [docs/USAGE.md](docs/USAGE.md) | توضیح هر امکان |
+| [docs/USAGE.fa.md](docs/USAGE.fa.md) | راهنمای کامل استفاده + روال بعد از راه‌اندازی و بعد از تحلیل (فارسی) |
+| [docs/USAGE.md](docs/USAGE.md) | همان راهنما به انگلیسی |
 | [docs/API.md](docs/API.md) | همه endpoint‌های API با مثال |
 
 ---

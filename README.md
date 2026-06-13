@@ -246,5 +246,6 @@ improvement can move them to page one and multiply your clicks.
 |---|---|
 | [docs/INSTALLATION.md](docs/INSTALLATION.md) | Full Ubuntu 22.04 production setup (PM2, Nginx, SSL) |
 | [docs/GOOGLE_SETUP.md](docs/GOOGLE_SETUP.md) | Google Cloud / OAuth + Search Console permissions |
-| [docs/USAGE.md](docs/USAGE.md) | Every feature explained |
+| [docs/USAGE.md](docs/USAGE.md) | Every feature explained + post-setup & post-analysis workflow (English) |
+| [docs/USAGE.fa.md](docs/USAGE.fa.md) | همان راهنمای کامل استفاده به فارسی |
 | [docs/API.md](docs/API.md) | Every API endpoint with request/response examples |
