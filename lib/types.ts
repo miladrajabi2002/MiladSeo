@@ -327,7 +327,7 @@ export interface PublicDashboard {
 // AI SEO assistant
 // ---------------------------------------------------------------------------
 
-export type AiProvider = "anthropic" | "openai";
+export type AiProvider = "anthropic" | "openai" | "openrouter";
 
 export interface AiConfigStatus {
   configured: boolean;

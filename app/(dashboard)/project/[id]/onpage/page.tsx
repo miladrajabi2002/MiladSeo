@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { Check, Loader2, Search, X } from "lucide-react";
+import AiAssist from "@/components/project/AiAssist";
 import { apiGet, errorMessage } from "@/lib/client";
 import type { OnPageReport } from "@/lib/types";
 
@@ -229,6 +230,12 @@ export default function OnPagePage() {
               </ul>
             )}
           </div>
+
+          <AiAssist
+            projectId={projectId}
+            area="onpage"
+            getUrl={() => report.finalUrl}
+          />
         </div>
       ) : (
         <p className="rounded-xl border border-dashed border-border-base bg-bg-card p-6 text-center text-sm text-text-muted">

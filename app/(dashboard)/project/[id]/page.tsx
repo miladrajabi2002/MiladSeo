@@ -10,6 +10,7 @@ import TopKeywords from "@/components/project/TopKeywords";
 import ComparisonCard from "@/components/project/ComparisonCard";
 import VisibilityChart from "@/components/project/VisibilityChart";
 import AnnotationsPanel from "@/components/project/AnnotationsPanel";
+import AiAssist from "@/components/project/AiAssist";
 import {
   ChartSkeleton,
   StatRowSkeleton,
@@ -80,6 +81,7 @@ export default function OverviewPage() {
       className="space-y-6"
     >
       <OverviewStats stats={stats} domain={domain} />
+      <AiAssist projectId={projectId} area="overview" />
       <ComparisonCard projectId={Number(projectId)} />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
         <div className="xl:col-span-3">

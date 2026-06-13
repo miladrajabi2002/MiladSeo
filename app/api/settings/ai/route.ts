@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { fail, isAuthenticated, ok, serverError, unauthorized } from "@/lib/api";
 import {
   clearAiConfig,
+  defaultModelFor,
   getAiConfig,
   getAiStatus,
+  isProvider,
   saveAiConfig,
   testConnection,
 } from "@/lib/ai";
-import type { AiProvider } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -36,23 +37,21 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     const apiKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
     const model = typeof body.model === "string" ? body.model.trim() : "";
 
-    if (provider !== "anthropic" && provider !== "openai") {
-      return fail("provider must be 'anthropic' or 'openai'", "VALIDATION_ERROR", 422);
+    if (!isProvider(provider)) {
+      return fail("provider must be 'anthropic', 'openai' or 'openrouter'", "VALIDATION_ERROR", 422);
     }
     if (!apiKey) {
       return fail("apiKey is required", "VALIDATION_ERROR", 422);
     }
 
-    const provider2 = provider as AiProvider;
-    const defaultModel = provider2 === "anthropic" ? "claude-opus-4-8" : "gpt-4o";
     try {
-      await testConnection({ provider: provider2, apiKey, model: model || defaultModel });
+      await testConnection({ provider, apiKey, model: model || defaultModelFor(provider) });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Connection test failed";
       return fail(`Could not connect: ${message}`, "AI_CONNECTION_FAILED", 400);
     }
 
-    await saveAiConfig(provider2, apiKey, model || null);
+    await saveAiConfig(provider, apiKey, model || null);
     return ok(await getAiStatus());
   } catch (error) {
     return serverError(error);

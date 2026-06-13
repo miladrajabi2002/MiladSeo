@@ -178,11 +178,16 @@
 
 ۱. یک پروژه را باز کن → تب **AI Audit**.
 ۲. یک **provider** انتخاب کن:
-   - **Claude (Anthropic)** — کلید را از [console.anthropic.com](https://console.anthropic.com/settings/keys) بگیر (مدل پیش‌فرض `claude-opus-4-8`).
-   - **ChatGPT (OpenAI)** — کلید را از [platform.openai.com](https://platform.openai.com/api-keys) بگیر (مدل پیش‌فرض `gpt-4o`).
-۳. در صورت تمایل یک **مدل** خاص تایپ کن؛ **API key** را پیست کن و **Connect** بزن. کلید با یک تماس تست کوچک تأیید می‌شود، **فقط سمت سرور ذخیره می‌شود** و دیگر نمایش داده نمی‌شود.
-۴. روی **Run analysis** بزن. برنامه یک خلاصه از داده‌های این پروژه (overview، ترافیک، شکاف‌های CTR، movers، cannibalization، صفحات برتر، Core Web Vitals) را به مدل می‌فرستد و یک ممیزی ساختاریافته نشان می‌دهد.
-۵. هر زمان بعد از sync جدید دوباره اجرا کن. با **Change** کلید/provider را عوض کن یا با آیکن سطل کلید را حذف کن.
+   - **Claude (Anthropic)** — کلید از [console.anthropic.com](https://console.anthropic.com/settings/keys).
+   - **ChatGPT (OpenAI)** — کلید از [platform.openai.com](https://platform.openai.com/api-keys).
+   - **OpenRouter** — کلید از [openrouter.ai/keys](https://openrouter.ai/keys)؛ با یک کلید به **DeepSeek، Llama، Gemini، GPT، Claude** و… دسترسی داری.
+۳. **API key** را پیست کن، روی **Load models** بزن، و **مدل را از منوی کشویی انتخاب کن** (نیازی به تایپ نام مدل نیست؛ لیست زنده با کلید تو گرفته می‌شود — برای لیست بلند OpenRouter از کادر فیلتر استفاده کن). بعد **Connect** بزن. کلید با یک تماس تست کوچک تأیید می‌شود، **فقط سمت سرور ذخیره می‌شود** و دیگر نمایش داده نمی‌شود.
+۴. برای ممیزی کامل روی **Run analysis** بزن. برنامه خلاصه‌ی *همه‌ی* گزارش‌های این پروژه را می‌فرستد — overview، ترافیک، شکاف‌های CTR، movers، cannibalization، صفحات برتر، وضعیت ایندکس، PageSpeed، **CrUX واقعی کاربر**، **GA4** (اگر وصل باشد) و چک **on-page صفحه‌ی اصلی** — و یک ممیزی ساختاریافته نشان می‌دهد: امتیاز سلامت، خلاصه، توصیه‌های اولویت‌بندی‌شده، بردهای سریع و ریسک‌ها.
+۵. هر زمان بعد از sync جدید دوباره اجرا کن. با **Change** کلید/provider/مدل را عوض کن یا با آیکن سطل کلید را حذف کن.
+
+### AI Assist داخل تب‌ها
+
+وقتی AI وصل باشد، یک پنل **AI Assist** هم در تب‌های **Overview**، **Insights**، **Site Health** و **On-Page** ظاهر می‌شود. روی **Analyze this tab** بزن تا فقط روی دیتای همان تب مشاوره‌ی متمرکز بگیری، یا یک **سؤال پیگیری** تایپ کن. مثال‌ها: در Insights عنوان/متای پیشنهادی بازنویسی می‌دهد؛ در On-Page چک‌لیست رفع برای صفحه‌ی بررسی‌شده می‌دهد؛ در Site Health رفع Core Web Vitals را اولویت‌بندی می‌کند.
 
 > هزینه را provider هوش مصنوعی تو حساب می‌کند، نه داشبورد. ممیزی‌ها کوتاه‌اند (چند هزار توکن)، پس ارزان‌اند.
 

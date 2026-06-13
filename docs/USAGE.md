@@ -234,20 +234,32 @@ week or two later you can see on the charts whether it helped.
 
 1. Open a project → **AI Audit** tab.
 2. Choose a **provider**:
-   - **Claude (Anthropic)** — get a key at
-     [console.anthropic.com](https://console.anthropic.com/settings/keys)
-     (default model `claude-opus-4-8`).
-   - **ChatGPT (OpenAI)** — get a key at
-     [platform.openai.com](https://platform.openai.com/api-keys)
-     (default model `gpt-4o`).
-3. Optionally type a specific **model**; paste your **API key** and **Connect**.
-   The key is verified with a tiny test call, **stored server-side only**, and
-   never shown again.
-4. Click **Run analysis**. The app sends a snapshot of this project's data
-   (overview, traffic, CTR gaps, movers, cannibalization, top pages, Core Web
-   Vitals) to the model and shows a structured audit.
-5. Re-run any time after a new sync. Use **Change** to swap keys/provider, or
-   the trash icon to remove the key.
+   - **Claude (Anthropic)** — key at [console.anthropic.com](https://console.anthropic.com/settings/keys).
+   - **ChatGPT (OpenAI)** — key at [platform.openai.com](https://platform.openai.com/api-keys).
+   - **OpenRouter** — key at [openrouter.ai/keys](https://openrouter.ai/keys);
+     one key gives you **DeepSeek, Llama, Gemini, GPT, Claude** and more.
+3. Paste your **API key**, click **Load models**, and **pick a model from the
+   dropdown** (no need to type a model id; the list is fetched live with your
+   key — use the filter box for OpenRouter's long list). Then **Connect**. The
+   key is verified with a tiny test call, **stored server-side only**, and never
+   shown again.
+4. Click **Run analysis** for the full audit. The app sends a snapshot of *all*
+   of this project's reports — overview, traffic, CTR gaps, movers,
+   cannibalization, top pages, index coverage, PageSpeed, **real-user CrUX**,
+   **GA4** (if linked) and the **homepage on-page** check — and shows a
+   structured audit: health score, summary, prioritized recommendations,
+   quick wins and risks.
+5. Re-run any time after a new sync. Use **Change** to swap keys/provider/model,
+   or the trash icon to remove the key.
+
+### AI Assist inside tabs
+
+When AI is connected, an **AI Assist** panel also appears on the **Overview**,
+**Insights**, **Site Health** and **On-Page** tabs. Click **Analyze this tab**
+for focused advice on just that tab's data, or type a **follow-up question**.
+Examples: on Insights it proposes rewritten titles/meta descriptions; on
+On-Page it returns a fix checklist for the inspected page; on Site Health it
+prioritizes Core Web Vitals fixes.
 
 > Cost is billed by your AI provider, not the dashboard. Audits are short
 > (a few thousand tokens), so they're inexpensive.

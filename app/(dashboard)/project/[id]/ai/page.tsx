@@ -31,6 +31,12 @@ const CATEGORY_LABEL: Record<AiRecommendation["category"], string> = {
   links: "Links",
 };
 
+const PROVIDER_LABEL: Record<AiProvider, string> = {
+  anthropic: "Claude",
+  openai: "OpenAI",
+  openrouter: "OpenRouter",
+};
+
 function scoreColor(score: number): string {
   if (score >= 80) return "text-accent-green";
   if (score >= 50) return "text-accent-yellow";
@@ -47,6 +53,9 @@ export default function AiPage() {
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("");
   const [saving, setSaving] = useState(false);
+  const [models, setModels] = useState<string[] | null>(null);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [modelFilter, setModelFilter] = useState("");
 
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);
   const [running, setRunning] = useState(false);
@@ -66,6 +75,37 @@ export default function AiPage() {
 
   const inputClass =
     "mt-1 w-full rounded-lg border border-border-base bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent-blue";
+
+  const changeProvider = (next: AiProvider) => {
+    setProvider(next);
+    setModels(null);
+    setModel("");
+    setModelFilter("");
+  };
+
+  const loadModels = async () => {
+    if (!apiKey.trim()) {
+      toast.error("Enter the API key first");
+      return;
+    }
+    setLoadingModels(true);
+    try {
+      const result = await apiPost<{ models: string[] }>("/api/settings/ai/models", {
+        provider,
+        apiKey,
+      });
+      setModels(result.models);
+      if (result.models.length === 0) {
+        toast("No models returned for this key", { icon: "🤔" });
+      } else if (!result.models.includes(model)) {
+        setModel(result.models[0]);
+      }
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setLoadingModels(false);
+    }
+  };
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -132,9 +172,9 @@ export default function AiPage() {
             <div>
               <h2 className="text-sm font-bold text-text-primary">AI SEO Assistant</h2>
               <p className="text-xs text-text-secondary">
-                {status?.configured
-                  ? `Connected to ${status.provider === "anthropic" ? "Claude" : "OpenAI"} · ${status.model}`
-                  : "Connect Claude or OpenAI to get an expert audit of this site"}
+                {status?.configured && status.provider
+                  ? `Connected to ${PROVIDER_LABEL[status.provider]} · ${status.model}`
+                  : "Connect Claude, OpenAI or OpenRouter to get an expert audit of this site"}
               </p>
             </div>
           </div>
@@ -164,29 +204,19 @@ export default function AiPage() {
 
         {showForm ? (
           <form onSubmit={(e) => void handleSave(e)} className="mt-4 space-y-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium text-text-secondary">
-                Provider
-                <select
-                  value={provider}
-                  onChange={(e) => setProvider(e.target.value as AiProvider)}
-                  className={inputClass}
-                >
-                  <option value="anthropic">Claude (Anthropic)</option>
-                  <option value="openai">ChatGPT (OpenAI)</option>
-                </select>
-              </label>
-              <label className="block text-sm font-medium text-text-secondary">
-                Model <span className="text-text-muted">(optional)</span>
-                <input
-                  type="text"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder={provider === "anthropic" ? "claude-opus-4-8" : "gpt-4o"}
-                  className={inputClass}
-                />
-              </label>
-            </div>
+            <label className="block text-sm font-medium text-text-secondary">
+              Provider
+              <select
+                value={provider}
+                onChange={(e) => changeProvider(e.target.value as AiProvider)}
+                className={inputClass}
+              >
+                <option value="anthropic">Claude (Anthropic)</option>
+                <option value="openai">ChatGPT (OpenAI)</option>
+                <option value="openrouter">OpenRouter (DeepSeek, Llama, Gemini…)</option>
+              </select>
+            </label>
+
             <label className="block text-sm font-medium text-text-secondary">
               API key
               <div className="relative">
@@ -198,8 +228,17 @@ export default function AiPage() {
                   type="password"
                   required
                   value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={provider === "anthropic" ? "sk-ant-…" : "sk-…"}
+                  onChange={(e) => {
+                    setApiKey(e.target.value);
+                    setModels(null);
+                  }}
+                  placeholder={
+                    provider === "anthropic"
+                      ? "sk-ant-…"
+                      : provider === "openrouter"
+                      ? "sk-or-…"
+                      : "sk-…"
+                  }
                   className={`${inputClass} pl-8`}
                   autoComplete="off"
                 />
@@ -208,6 +247,59 @@ export default function AiPage() {
                 Stored server-side only and never shown again. We verify it before saving.
               </span>
             </label>
+
+            {/* Model picker — loaded from the provider with your key */}
+            <div>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-sm font-medium text-text-secondary">Model</span>
+                <button
+                  type="button"
+                  onClick={() => void loadModels()}
+                  disabled={loadingModels || !apiKey.trim()}
+                  className="flex items-center gap-1 text-xs font-semibold text-accent-blue transition-opacity hover:opacity-80 disabled:opacity-40"
+                >
+                  {loadingModels ? <Loader2 size={12} className="animate-spin" /> : null}
+                  {models ? "Reload models" : "Load models"}
+                </button>
+              </div>
+              {models && models.length > 0 ? (
+                <>
+                  {models.length > 12 ? (
+                    <input
+                      type="text"
+                      value={modelFilter}
+                      onChange={(e) => setModelFilter(e.target.value)}
+                      placeholder="Filter models… (e.g. deepseek)"
+                      className={`${inputClass} mb-2`}
+                    />
+                  ) : null}
+                  <select
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    className={inputClass}
+                    size={Math.min(8, Math.max(3, models.length))}
+                  >
+                    {models
+                      .filter((m) =>
+                        modelFilter ? m.toLowerCase().includes(modelFilter.toLowerCase()) : true
+                      )
+                      .map((m) => (
+                        <option key={m} value={m}>
+                          {m}
+                        </option>
+                      ))}
+                  </select>
+                  <span className="mt-1 block text-xs text-text-muted">
+                    {models.length} models available · selected: {model || "none"}
+                  </span>
+                </>
+              ) : (
+                <p className="rounded-lg border border-dashed border-border-base bg-bg-secondary px-3 py-2 text-xs text-text-muted">
+                  Enter your key and click <strong>Load models</strong> to choose one
+                  {provider === "openrouter" ? " (DeepSeek, Llama, Gemini, GPT, Claude…)" : ""}.
+                </p>
+              )}
+            </div>
             <div className="flex justify-end gap-2">
               {status?.configured ? (
                 <button
@@ -223,7 +315,7 @@ export default function AiPage() {
               ) : null}
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || !model}
                 className="flex items-center gap-2 rounded-lg bg-accent-blue px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
@@ -334,7 +426,7 @@ export default function AiPage() {
           </div>
 
           <p className="text-center text-[11px] text-text-muted">
-            Generated by {analysis.provider === "anthropic" ? "Claude" : "OpenAI"} ({analysis.model}) ·{" "}
+            Generated by {PROVIDER_LABEL[analysis.provider]} ({analysis.model}) ·{" "}
             {new Date(analysis.generatedAt).toLocaleString()}
           </p>
         </motion.div>
@@ -351,7 +443,7 @@ export default function AiPage() {
           >
             Anthropic Console
           </a>{" "}
-          or{" "}
+,{" "}
           <a
             href="https://platform.openai.com/api-keys"
             target="_blank"
@@ -359,8 +451,17 @@ export default function AiPage() {
             className="text-accent-blue underline underline-offset-2"
           >
             OpenAI Platform
-          </a>
-          , paste it above, and run a full audit.
+          </a>{" "}
+          or{" "}
+          <a
+            href="https://openrouter.ai/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-accent-blue underline underline-offset-2"
+          >
+            OpenRouter
+          </a>{" "}
+          (one key for DeepSeek, Llama, Gemini, GPT, Claude…), then run a full audit.
         </p>
       ) : null}
     </motion.div>
