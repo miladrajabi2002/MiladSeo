@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import TrafficChart from "@/components/project/TrafficChart";
 import OpportunitiesTable from "@/components/project/OpportunitiesTable";
 import CannibalizationView from "@/components/project/CannibalizationView";
+import AiAssist from "@/components/project/AiAssist";
 import { ChartSkeleton, TableSkeleton } from "@/components/ui/LoadingSkeleton";
 import { apiGet, errorMessage } from "@/lib/client";
 import type { CannibalizationGroup, TrafficData } from "@/lib/types";
@@ -89,6 +90,8 @@ export default function InsightsPage() {
       ) : (
         <CannibalizationView groups={cannibalization} />
       )}
+
+      <AiAssist projectId={projectId} area="insights" />
     </motion.div>
   );
 }

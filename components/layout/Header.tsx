@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
-import { LogOut, Menu, PlugZap } from "lucide-react";
+import toast from "react-hot-toast";
+import { LogOut, Menu, PlugZap, Unplug } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import CalendarToggle from "@/components/ui/CalendarToggle";
-import { apiGet } from "@/lib/client";
+import { apiDelete, apiGet, errorMessage } from "@/lib/client";
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -18,12 +19,44 @@ interface GoogleStatus {
 
 export default function Header({ onOpenMobileMenu }: HeaderProps) {
   const [google, setGoogle] = useState<GoogleStatus | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
 
   useEffect(() => {
     apiGet<GoogleStatus>("/api/settings/google")
       .then(setGoogle)
       .catch(() => setGoogle(null));
   }, []);
+
+  const handleDisconnect = async () => {
+    if (
+      !window.confirm(
+        "Disconnect this Google account? Syncs will stop until you reconnect."
+      )
+    ) {
+      return;
+    }
+    setDisconnecting(true);
+    try {
+      const result = await apiDelete<{ fullyCleared: boolean }>(
+        "/api/settings/google"
+      );
+      if (result.fullyCleared) {
+        setGoogle((prev) =>
+          prev ? { ...prev, connected: false } : prev
+        );
+        toast.success("Google account disconnected");
+      } else {
+        toast(
+          "Stored token cleared, but GOOGLE_REFRESH_TOKEN is still set in .env",
+          { icon: "⚠️" }
+        );
+      }
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setDisconnecting(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border-base bg-bg-card/80 px-4 backdrop-blur lg:px-6">
@@ -54,9 +87,19 @@ export default function Header({ onOpenMobileMenu }: HeaderProps) {
           </a>
         ) : null}
         {google?.connected ? (
-          <span className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-text-muted">
+          <span className="group flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs text-text-muted">
             <span className="pulse-dot h-2 w-2 rounded-full bg-accent-green" />
             Google connected
+            <button
+              type="button"
+              aria-label="Disconnect Google"
+              title="Disconnect Google account"
+              onClick={() => void handleDisconnect()}
+              disabled={disconnecting}
+              className="ml-0.5 text-text-muted opacity-60 transition-colors hover:text-accent-red hover:opacity-100 disabled:opacity-40"
+            >
+              <Unplug size={13} />
+            </button>
           </span>
         ) : null}
         <CalendarToggle />

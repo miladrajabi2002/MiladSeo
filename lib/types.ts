@@ -239,6 +239,73 @@ export interface PageSpeedRow {
   checkedAt: string;
 }
 
+// ---------------------------------------------------------------------------
+// Google Analytics 4
+// ---------------------------------------------------------------------------
+
+export interface Ga4Property {
+  property: string; // "properties/123456789"
+  displayName: string;
+  account: string;
+}
+
+export interface Ga4Point {
+  date: string;
+  sessions: number;
+  users: number;
+  pageviews: number;
+  conversions: number;
+}
+
+export interface Ga4Summary {
+  propertyId: string;
+  days: number;
+  totals: {
+    sessions: number;
+    users: number;
+    newUsers: number;
+    conversions: number;
+    avgSessionDuration: number;
+    bounceRate: number;
+  };
+  series: Ga4Point[];
+  channels: { channel: string; sessions: number }[];
+  topPages: { page: string; sessions: number; conversions: number; avgDuration: number }[];
+}
+
+export interface KeywordIdea {
+  text: string;
+  words: number;
+  question: boolean;
+  /** true when this query is already a tracked keyword */
+  tracked?: boolean;
+}
+
+export interface KeywordResearch {
+  seed: string;
+  locale: string;
+  total: number;
+  ideas: KeywordIdea[];
+}
+
+export interface CruxPoint {
+  /** collection-period end date */
+  date: string;
+  /** p75 largest contentful paint (ms) */
+  lcp: number | null;
+  /** p75 interaction to next paint (ms) */
+  inp: number | null;
+  /** p75 cumulative layout shift (unitless) */
+  cls: number | null;
+}
+
+export interface CruxData {
+  origin: string;
+  formFactor: "PHONE" | "DESKTOP";
+  series: CruxPoint[];
+  latest: CruxPoint | null;
+}
+
 export interface ShareLinkInfo {
   token: string;
   url: string;
@@ -254,6 +321,86 @@ export interface PublicDashboard {
   visibility: VisibilityData;
   traffic: TrafficPoint[];
   movers: MoversData;
+}
+
+// ---------------------------------------------------------------------------
+// AI SEO assistant
+// ---------------------------------------------------------------------------
+
+export type AiProvider = "anthropic" | "openai" | "openrouter";
+
+export interface AiConfigStatus {
+  configured: boolean;
+  provider: AiProvider | null;
+  model: string | null;
+}
+
+export interface AiRecommendation {
+  title: string;
+  category: "content" | "technical" | "keywords" | "performance" | "onpage" | "links";
+  priority: "high" | "medium" | "low";
+  impact: string;
+  effort: "low" | "medium" | "high";
+  detail: string;
+}
+
+export interface AiAnalysis {
+  healthScore: number;
+  summary: string;
+  recommendations: AiRecommendation[];
+  quickWins: string[];
+  risks: string[];
+  generatedAt: string;
+  provider: AiProvider;
+  model: string;
+}
+
+// ---------------------------------------------------------------------------
+// On-page / technical checker
+// ---------------------------------------------------------------------------
+
+export interface RedirectHop {
+  url: string;
+  status: number;
+  to: string | null;
+}
+
+export interface LinkStatus {
+  url: string;
+  status: number;
+  internal: boolean;
+  ok: boolean;
+}
+
+export interface OnPageReport {
+  requestedUrl: string;
+  finalUrl: string;
+  status: number;
+  redirects: RedirectHop[];
+  title: string | null;
+  titleLength: number;
+  metaDescription: string | null;
+  metaDescriptionLength: number;
+  canonical: string | null;
+  robotsMeta: string | null;
+  viewport: string | null;
+  lang: string | null;
+  h1: string[];
+  h1Count: number;
+  h2Count: number;
+  wordCount: number;
+  imageCount: number;
+  imagesMissingAlt: number;
+  og: { title: string | null; description: string | null; image: string | null };
+  twitterCard: string | null;
+  schemaCount: number;
+  schemaTypes: string[];
+  robotsTxt: boolean;
+  sitemapUrls: string[];
+  sitemapUrlCount: number | null;
+  links: LinkStatus[];
+  brokenLinkCount: number;
+  linksChecked: number;
 }
 
 export type ApiSuccess<T> = { data: T };

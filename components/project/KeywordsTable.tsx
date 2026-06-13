@@ -395,11 +395,38 @@ export default function KeywordsTable({
           Group
           <input
             type="text"
+            list="keyword-groups"
             value={editGroup}
             onChange={(e) => setEditGroup(e.target.value)}
             placeholder="e.g. Airport"
             className="mt-1 w-full rounded-lg border border-border-base bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none focus:border-accent-blue"
           />
+          <datalist id="keyword-groups">
+            {groups.map((g) => (
+              <option key={g} value={g} />
+            ))}
+          </datalist>
+          {groups.length > 0 ? (
+            <span className="mt-1.5 flex flex-wrap gap-1.5">
+              {groups.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setEditGroup(g)}
+                  className="rounded-full bg-bg-secondary px-2 py-0.5 text-xs text-text-secondary transition-colors hover:text-accent-blue"
+                >
+                  {g}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setEditGroup("")}
+                className="rounded-full bg-bg-secondary px-2 py-0.5 text-xs text-text-muted transition-colors hover:text-accent-red"
+              >
+                clear
+              </button>
+            </span>
+          ) : null}
         </label>
         <div className="mt-5 flex justify-end gap-2">
           <button

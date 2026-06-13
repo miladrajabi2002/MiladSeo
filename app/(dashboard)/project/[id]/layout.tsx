@@ -90,11 +90,15 @@ export default function ProjectLayout({
   const tabs = [
     { label: "Overview", href: base },
     { label: "All Keywords", href: `${base}/keywords` },
+    { label: "Research", href: `${base}/research` },
     { label: "Pages", href: `${base}/pages` },
     { label: "Insights", href: `${base}/insights` },
+    { label: "Analytics", href: `${base}/analytics` },
     { label: "Movers & Drops", href: `${base}/movers` },
     { label: "Mobile", href: `${base}/mobile` },
     { label: "Site Health", href: `${base}/health` },
+    { label: "On-Page", href: `${base}/onpage` },
+    { label: "AI Audit", href: `${base}/ai` },
     { label: "Alerts", href: `${base}/alerts`, badge: project?.unreadAlerts },
   ];
 

@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import IndexStatusView from "@/components/project/IndexStatusView";
 import PageSpeedView from "@/components/project/PageSpeedView";
+import CruxView from "@/components/project/CruxView";
+import AiAssist from "@/components/project/AiAssist";
 import { TableSkeleton } from "@/components/ui/LoadingSkeleton";
 import { apiGet, errorMessage } from "@/lib/client";
 import type { IndexStatusRow, PageSpeedRow } from "@/lib/types";
@@ -61,6 +63,10 @@ export default function HealthPage() {
           onChanged={load}
         />
       )}
+
+      <CruxView projectId={projectId} />
+
+      <AiAssist projectId={projectId} area="health" />
     </motion.div>
   );
 }
