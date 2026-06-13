@@ -13,7 +13,7 @@ import {
   Trash2,
   Zap,
 } from "lucide-react";
-import { apiDelete, apiGet, apiPost, apiPut, errorMessage } from "@/lib/client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, errorMessage } from "@/lib/client";
 import type { AiAnalysis, AiConfigStatus, AiProvider, AiRecommendation } from "@/lib/types";
 
 const PRIORITY_STYLE: Record<AiRecommendation["priority"], string> = {
@@ -43,6 +43,55 @@ function scoreColor(score: number): string {
   return "text-accent-red";
 }
 
+const inputClass =
+  "mt-1 w-full rounded-lg border border-border-base bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent-blue";
+
+/** A normal single-line dropdown with a filter box for long model lists. */
+function ModelSelect({
+  models,
+  value,
+  onChange,
+}: {
+  models: string[];
+  value: string;
+  onChange: (m: string) => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const lower = filter.trim().toLowerCase();
+  let options = lower ? models.filter((m) => m.toLowerCase().includes(lower)) : models;
+  // Always keep the current selection in the list so the dropdown shows it
+  if (value && !options.includes(value)) options = [value, ...options];
+
+  return (
+    <div>
+      {models.length > 10 ? (
+        <input
+          type="text"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder="Filter models… (e.g. deepseek)"
+          className={`${inputClass} mb-2`}
+        />
+      ) : null}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass}
+      >
+        {options.length === 0 ? <option value="">No matches</option> : null}
+        {options.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+      <span className="mt-1 block text-xs text-text-muted">
+        {models.length} models · selected: {value || "none"}
+      </span>
+    </div>
+  );
+}
+
 export default function AiPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -58,7 +107,13 @@ export default function AiPage() {
   const [saving, setSaving] = useState(false);
   const [models, setModels] = useState<string[] | null>(null);
   const [loadingModels, setLoadingModels] = useState(false);
-  const [modelFilter, setModelFilter] = useState("");
+
+  // Change-model (without re-entering the key) for the connected state
+  const [editModel, setEditModel] = useState(false);
+  const [storedModels, setStoredModels] = useState<string[] | null>(null);
+  const [newModel, setNewModel] = useState("");
+  const [loadingStored, setLoadingStored] = useState(false);
+  const [savingModel, setSavingModel] = useState(false);
 
   const [analysis, setAnalysis] = useState<AiAnalysis | null>(null);
   const [running, setRunning] = useState(false);
@@ -76,14 +131,40 @@ export default function AiPage() {
     loadStatus();
   }, [loadStatus]);
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-border-base bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-accent-blue";
-
   const changeProvider = (next: AiProvider) => {
     setProvider(next);
     setModels(null);
     setModel("");
-    setModelFilter("");
+  };
+
+  const openModelEditor = async () => {
+    setEditModel(true);
+    setNewModel(status?.model ?? "");
+    if (storedModels) return;
+    setLoadingStored(true);
+    try {
+      const result = await apiGet<{ models: string[] }>("/api/settings/ai/models");
+      setStoredModels(result.models);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setLoadingStored(false);
+    }
+  };
+
+  const saveModel = async () => {
+    if (!newModel) return;
+    setSavingModel(true);
+    try {
+      const saved = await apiPatch<AiConfigStatus>("/api/settings/ai", { model: newModel });
+      setStatus(saved);
+      setEditModel(false);
+      toast.success(`Model switched to ${newModel}`);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setSavingModel(false);
+    }
   };
 
   const loadModels = async () => {
@@ -202,10 +283,17 @@ export default function AiPage() {
               </span>
               <button
                 type="button"
+                onClick={() => void openModelEditor()}
+                className="rounded-lg border border-border-base px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
+              >
+                Model
+              </button>
+              <button
+                type="button"
                 onClick={() => setShowForm(true)}
                 className="rounded-lg border border-border-base px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text-primary"
               >
-                Change
+                Change key
               </button>
               <button
                 type="button"
@@ -218,6 +306,44 @@ export default function AiPage() {
             </div>
           ) : null}
         </div>
+
+        {/* Change model without re-entering the key */}
+        {status?.configured && !showForm && editModel ? (
+          <div className="mt-4 rounded-xl border border-border-base bg-bg-secondary/40 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-semibold text-text-primary">Switch model</span>
+              <button
+                type="button"
+                onClick={() => setEditModel(false)}
+                className="text-xs text-text-muted transition-colors hover:text-text-primary"
+              >
+                Cancel
+              </button>
+            </div>
+            {loadingStored ? (
+              <div className="flex items-center gap-2 py-2 text-sm text-text-muted">
+                <Loader2 size={14} className="animate-spin" /> Loading models…
+              </div>
+            ) : storedModels && storedModels.length > 0 ? (
+              <>
+                <ModelSelect models={storedModels} value={newModel} onChange={setNewModel} />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => void saveModel()}
+                    disabled={savingModel || !newModel || newModel === status.model}
+                    className="flex items-center gap-1.5 rounded-lg bg-accent-blue px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    {savingModel ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
+                    Save model
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-text-muted">Could not load models for the stored key.</p>
+            )}
+          </div>
+        ) : null}
 
         {showForm ? (
           <form onSubmit={(e) => void handleSave(e)} className="mt-4 space-y-3">
@@ -280,36 +406,7 @@ export default function AiPage() {
                 </button>
               </div>
               {models && models.length > 0 ? (
-                <>
-                  {models.length > 12 ? (
-                    <input
-                      type="text"
-                      value={modelFilter}
-                      onChange={(e) => setModelFilter(e.target.value)}
-                      placeholder="Filter models… (e.g. deepseek)"
-                      className={`${inputClass} mb-2`}
-                    />
-                  ) : null}
-                  <select
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className={inputClass}
-                    size={Math.min(8, Math.max(3, models.length))}
-                  >
-                    {models
-                      .filter((m) =>
-                        modelFilter ? m.toLowerCase().includes(modelFilter.toLowerCase()) : true
-                      )
-                      .map((m) => (
-                        <option key={m} value={m}>
-                          {m}
-                        </option>
-                      ))}
-                  </select>
-                  <span className="mt-1 block text-xs text-text-muted">
-                    {models.length} models available · selected: {model || "none"}
-                  </span>
-                </>
+                <ModelSelect models={models} value={model} onChange={setModel} />
               ) : (
                 <p className="rounded-lg border border-dashed border-border-base bg-bg-secondary px-3 py-2 text-xs text-text-muted">
                   Enter your key and click <strong>Load models</strong> to choose one

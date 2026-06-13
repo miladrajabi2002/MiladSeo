@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fail, isAuthenticated, ok, unauthorized } from "@/lib/api";
-import { isProvider, listModels } from "@/lib/ai";
+import { getAiConfig, isProvider, listModels } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
+
+/** GET lists models using the already-stored key (to change model later). */
+export async function GET(): Promise<NextResponse> {
+  if (!(await isAuthenticated())) return unauthorized();
+  try {
+    const config = await getAiConfig();
+    if (!config) return fail("No AI provider configured", "NOT_CONFIGURED", 400);
+    const models = await listModels(config.provider, config.apiKey);
+    return ok({ models });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not load models";
+    return fail(message, "MODELS_FAILED", 400);
+  }
+}
 
 interface Body {
   provider?: unknown;
