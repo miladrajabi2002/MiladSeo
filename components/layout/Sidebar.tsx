@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { BarChart3, Globe, LayoutDashboard, X } from "lucide-react";
+import { BarChart3, BookOpen, Globe, LayoutDashboard, X } from "lucide-react";
 import { apiGet } from "@/lib/client";
 import type { ProjectSummary } from "@/lib/types";
 
@@ -71,6 +71,19 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         >
           <LayoutDashboard size={16} />
           Projects
+        </Link>
+
+        <Link
+          href="/guide"
+          onClick={onCloseMobile}
+          className={`mt-0.5 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            pathname === "/guide"
+              ? "bg-bg-secondary text-text-primary"
+              : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
+          }`}
+        >
+          <BookOpen size={16} />
+          Guide
         </Link>
 
         <p className="mb-1 mt-6 px-3 text-xs font-semibold uppercase tracking-wider text-text-muted">
