@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { ChevronDown, ChevronUp, ExternalLink, FolderPlus, Plus, RefreshCw } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, ExternalLink, FolderPlus, Plus, RefreshCw } from "lucide-react";
 import ProjectCard from "@/components/dashboard/ProjectCard";
 import Modal from "@/components/ui/Modal";
 import { CardGridSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -173,6 +174,25 @@ export default function ProjectsPage() {
           </motion.div>
         )}
       </div>
+
+      {/* Guide / tutorial entry */}
+      <Link
+        href="/guide"
+        className="mt-8 flex items-center gap-4 rounded-2xl border border-border-base bg-gradient-to-br from-accent-blue/10 to-violet-500/5 p-5 transition-shadow hover:shadow-card-hover"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-blue/15 text-accent-blue">
+          <BookOpen size={22} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm font-bold text-text-primary">
+            راهنما و آموزش کامل · Complete Guide &amp; Tutorial
+          </h3>
+          <p className="mt-0.5 text-xs text-text-secondary">
+            راه‌اندازی، استفاده، معرفی قابلیت‌ها و آموزش سئو (فارسی/English) — هرچه برای شروع لازم داری.
+          </p>
+        </div>
+        <ChevronUp size={18} className="shrink-0 rotate-90 text-text-muted" />
+      </Link>
 
       <Modal open={modalOpen} onClose={closeModal} title="Add Project">
         <form onSubmit={(e) => void handleCreate(e)}>

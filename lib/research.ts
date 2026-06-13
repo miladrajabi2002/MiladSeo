@@ -35,12 +35,16 @@ async function fetchSuggestions(
   gl: string
 ): Promise<string[]> {
   try {
-    const response = await axios.get<[string, string[]]>(ENDPOINT, {
-      params: { client: "firefox", q: query, hl, gl },
+    // Read raw bytes and decode as UTF-8 so non-Latin (Persian/Arabic)
+    // suggestions don't get mangled by a wrong response charset.
+    const response = await axios.get<ArrayBuffer>(ENDPOINT, {
+      params: { client: "firefox", q: query, hl, gl, ie: "UTF-8", oe: "UTF-8" },
       timeout: 12_000,
-      responseType: "json",
+      responseType: "arraybuffer",
     });
-    return Array.isArray(response.data?.[1]) ? response.data[1] : [];
+    const text = new TextDecoder("utf-8").decode(new Uint8Array(response.data));
+    const parsed = JSON.parse(text) as [string, string[]];
+    return Array.isArray(parsed?.[1]) ? parsed[1] : [];
   } catch {
     return [];
   }

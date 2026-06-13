@@ -58,6 +58,35 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   }
 }
 
+interface PatchBody {
+  model?: unknown;
+}
+
+/** PATCH changes only the model, reusing the stored provider + key. */
+export async function PATCH(request: NextRequest): Promise<NextResponse> {
+  if (!(await isAuthenticated())) return unauthorized();
+  try {
+    const config = await getAiConfig();
+    if (!config) return fail("No AI provider configured", "NOT_CONFIGURED", 400);
+
+    const body = (await request.json()) as PatchBody;
+    const model = typeof body.model === "string" ? body.model.trim() : "";
+    if (!model) return fail("model is required", "VALIDATION_ERROR", 422);
+
+    try {
+      await testConnection({ provider: config.provider, apiKey: config.apiKey, model });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Connection test failed";
+      return fail(`Could not use that model: ${message}`, "AI_CONNECTION_FAILED", 400);
+    }
+
+    await saveAiConfig(config.provider, config.apiKey, model);
+    return ok(await getAiStatus());
+  } catch (error) {
+    return serverError(error);
+  }
+}
+
 /** POST re-tests the currently stored credentials. */
 export async function POST(): Promise<NextResponse> {
   if (!(await isAuthenticated())) return unauthorized();
