@@ -95,6 +95,7 @@ export default function ProjectLayout({
     { label: "Movers & Drops", href: `${base}/movers` },
     { label: "Mobile", href: `${base}/mobile` },
     { label: "Site Health", href: `${base}/health` },
+    { label: "AI Audit", href: `${base}/ai` },
     { label: "Alerts", href: `${base}/alerts`, badge: project?.unreadAlerts },
   ];
 

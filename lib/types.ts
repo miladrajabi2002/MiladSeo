@@ -256,5 +256,37 @@ export interface PublicDashboard {
   movers: MoversData;
 }
 
+// ---------------------------------------------------------------------------
+// AI SEO assistant
+// ---------------------------------------------------------------------------
+
+export type AiProvider = "anthropic" | "openai";
+
+export interface AiConfigStatus {
+  configured: boolean;
+  provider: AiProvider | null;
+  model: string | null;
+}
+
+export interface AiRecommendation {
+  title: string;
+  category: "content" | "technical" | "keywords" | "performance" | "onpage" | "links";
+  priority: "high" | "medium" | "low";
+  impact: string;
+  effort: "low" | "medium" | "high";
+  detail: string;
+}
+
+export interface AiAnalysis {
+  healthScore: number;
+  summary: string;
+  recommendations: AiRecommendation[];
+  quickWins: string[];
+  risks: string[];
+  generatedAt: string;
+  provider: AiProvider;
+  model: string;
+}
+
 export type ApiSuccess<T> = { data: T };
 export type ApiError = { error: string; code: string };
