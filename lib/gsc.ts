@@ -42,6 +42,16 @@ export async function saveRefreshToken(token: string): Promise<void> {
   });
 }
 
+/**
+ * Removes the stored Google refresh token so the account is disconnected.
+ * Returns false if a token is still present via the GOOGLE_REFRESH_TOKEN env
+ * var (which this cannot clear) so the caller can warn the user.
+ */
+export async function clearRefreshToken(): Promise<boolean> {
+  await prisma.setting.deleteMany({ where: { key: REFRESH_TOKEN_KEY } });
+  return !process.env.GOOGLE_REFRESH_TOKEN;
+}
+
 export async function isGoogleConnected(): Promise<boolean> {
   try {
     return (await getRefreshToken()) !== null;
@@ -100,6 +110,15 @@ export interface SyncResult {
   alertsCreated: number;
 }
 
+// Projects currently mid-sync. A 30-day GSC pull is heavy (~30 API calls) and
+// the per-date delete+createMany is not safe to run twice at once, so a second
+// trigger for the same project is rejected instead of racing the first.
+const syncing = new Set<number>();
+
+export function isSyncing(projectId: number): boolean {
+  return syncing.has(projectId);
+}
+
 /**
  * Pulls the last 30 days of Search Console data for a project, one day at a
  * time (query + page + device dimensions), upserts keywords and rankings,
@@ -110,6 +129,11 @@ export async function syncProject(projectId: number): Promise<SyncResult> {
   if (!project) {
     throw new Error(`Project ${projectId} not found`);
   }
+
+  if (syncing.has(projectId)) {
+    throw new Error("A sync is already running for this project");
+  }
+  syncing.add(projectId);
 
   try {
     const auth = await getAuthorizedClient();
@@ -219,5 +243,7 @@ export async function syncProject(projectId: number): Promise<SyncResult> {
       data: { projectId, status: "error", message },
     });
     throw error;
+  } finally {
+    syncing.delete(projectId);
   }
 }

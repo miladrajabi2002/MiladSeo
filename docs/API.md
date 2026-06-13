@@ -51,6 +51,15 @@ Reports Google connection status.
 { "data": { "connected": true, "configured": true } }
 ```
 
+### `DELETE /api/settings/google`
+Disconnects the Google account by removing the stored refresh token. Syncs stop
+until you reconnect. `fullyCleared` is `false` when `GOOGLE_REFRESH_TOKEN` is
+still set in the environment (the connection persists from that fallback).
+
+```json
+{ "data": { "connected": false, "fullyCleared": true } }
+```
+
 ---
 
 ## Projects
@@ -294,7 +303,8 @@ Triggers a manual Search Console sync (last 30 days, day-by-day,
 ```
 
 Fails with `SYNC_FAILED` if Google isn't connected or the GSC property is
-inaccessible.
+inaccessible, or `SYNC_IN_PROGRESS` (HTTP 409) if a sync for the same project
+is already running.
 
 ### `POST /api/projects/:id/live-sheet`
 Creates (first call) or refreshes the project's Google Sheet and returns its

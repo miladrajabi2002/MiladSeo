@@ -4,10 +4,9 @@ import {
   isAuthenticated,
   ok,
   parseId,
-  serverError,
   unauthorized,
 } from "@/lib/api";
-import { syncProject } from "@/lib/gsc";
+import { isSyncing, syncProject } from "@/lib/gsc";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -20,6 +19,9 @@ export async function POST(
   if (!(await isAuthenticated())) return unauthorized();
   const id = parseId(params.id);
   if (id === null) return fail("Invalid project id", "INVALID_ID", 422);
+  if (isSyncing(id)) {
+    return fail("A sync is already running for this project", "SYNC_IN_PROGRESS", 409);
+  }
   try {
     const result = await syncProject(id);
     return ok(result);
