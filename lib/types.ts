@@ -4,6 +4,7 @@ export interface ProjectSummary {
   domain: string;
   gscProperty: string;
   location: string;
+  color: string | null;
   keywordCount: number;
   avgPosition: number | null;
   lastSyncAt: string | null;
@@ -239,6 +240,46 @@ export interface PageSpeedRow {
   checkedAt: string;
 }
 
+/** One day of (averaged) PageSpeed metrics for the history chart. */
+export interface PageSpeedHistoryPoint {
+  day: string;
+  strategy: "mobile" | "desktop";
+  score: number;
+  lcpMs: number | null;
+  cls: number | null;
+  inpMs: number | null;
+}
+
+/** One day of index-coverage counts for the coverage trend chart. */
+export interface IndexCoveragePoint {
+  day: string;
+  pass: number;
+  fail: number;
+  neutral: number;
+}
+
+// ---------------------------------------------------------------------------
+// Sitemap explorer
+// ---------------------------------------------------------------------------
+
+export interface SitemapUrlEntry {
+  loc: string;
+  path: string;
+  lastmod: string | null;
+  /** true when at least one tracked keyword points at this path */
+  tracked: boolean;
+}
+
+export interface SitemapReport {
+  sitemaps: string[];
+  totalUrls: number;
+  trackedCount: number;
+  untrackedCount: number;
+  entries: SitemapUrlEntry[];
+  /** sitemap URLs that could not be fetched/parsed */
+  errors: string[];
+}
+
 // ---------------------------------------------------------------------------
 // Google Analytics 4
 // ---------------------------------------------------------------------------
@@ -401,6 +442,78 @@ export interface OnPageReport {
   links: LinkStatus[];
   brokenLinkCount: number;
   linksChecked: number;
+}
+
+// ---------------------------------------------------------------------------
+// Competitor tracking (SERP)
+// ---------------------------------------------------------------------------
+
+export interface CompetitorRow {
+  id: number;
+  domain: string;
+  label: string | null;
+  isSelf: boolean;
+  createdAt: string;
+}
+
+/** One keyword's head-to-head SERP positions across the tracked domains. */
+export interface CompetitorComparisonRow {
+  keyword: string;
+  /** domain -> latest scraped position (null = not found) */
+  positions: Record<string, number | null>;
+  checkedAt: string | null;
+}
+
+export interface CompetitorComparison {
+  domains: CompetitorRow[];
+  rows: CompetitorComparisonRow[];
+}
+
+// ---------------------------------------------------------------------------
+// SERP features (GSC search appearance)
+// ---------------------------------------------------------------------------
+
+export interface SerpAppearanceRow {
+  appearance: string;
+  clicks: number;
+  impressions: number;
+  ctr: number | null;
+  position: number | null;
+}
+
+// ---------------------------------------------------------------------------
+// AI keyword clustering + snippet suggestions
+// ---------------------------------------------------------------------------
+
+export interface KeywordCluster {
+  name: string;
+  intent: "informational" | "commercial" | "transactional" | "navigational" | "other";
+  keywords: string[];
+}
+
+export interface KeywordClusterResult {
+  clusters: KeywordCluster[];
+  provider: AiProvider;
+  model: string;
+  generatedAt: string;
+}
+
+export interface SnippetSuggestion {
+  keyword: string;
+  urlPath: string | null;
+  position: number | null;
+  currentCtr: number;
+  expectedCtr: number;
+  suggestedTitle: string;
+  suggestedMeta: string;
+  rationale: string;
+}
+
+export interface SnippetSuggestionResult {
+  suggestions: SnippetSuggestion[];
+  provider: AiProvider;
+  model: string;
+  generatedAt: string;
 }
 
 export type ApiSuccess<T> = { data: T };

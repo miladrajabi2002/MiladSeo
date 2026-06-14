@@ -9,8 +9,10 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  LineChart,
   Pencil,
   Search,
+  Trash2,
 } from "lucide-react";
 import GroupBadge from "@/components/ui/Badge";
 import PositionBadge from "@/components/ui/PositionBadge";
@@ -19,7 +21,8 @@ import DeltaBadge from "@/components/ui/DeltaBadge";
 import Sparkline from "@/components/ui/Sparkline";
 import Modal from "@/components/ui/Modal";
 import KeywordTrendModal from "@/components/project/KeywordTrendModal";
-import { apiPatch, errorMessage } from "@/lib/client";
+import { useDensity } from "@/contexts/DensityContext";
+import { apiDelete, apiPatch, errorMessage } from "@/lib/client";
 import type { KeywordRow } from "@/lib/types";
 
 const PAGE_SIZE = 50;
@@ -103,6 +106,55 @@ export default function KeywordsTable({
   const [saving, setSaving] = useState(false);
   const [trendKeywordId, setTrendKeywordId] = useState<number | null>(null);
   const closeTrend = useCallback(() => setTrendKeywordId(null), []);
+  const [hiddenIds, setHiddenIds] = useState<Set<number>>(new Set());
+  const { cellPadding } = useDensity();
+
+  /** Optimistically hide a keyword, then delete it after a 5s undo window. */
+  const deleteKeyword = (row: KeywordRow) => {
+    setHiddenIds((prev) => new Set(prev).add(row.id));
+    let undone = false;
+
+    const timer = setTimeout(() => {
+      if (undone) return;
+      apiDelete(`/api/projects/${projectId}/keywords?keywordId=${row.id}`)
+        .then(() => onRowsChanged())
+        .catch((error) => {
+          toast.error(errorMessage(error));
+          setHiddenIds((prev) => {
+            const next = new Set(prev);
+            next.delete(row.id);
+            return next;
+          });
+        });
+    }, 5000);
+
+    toast(
+      (t) => (
+        <span className="flex items-center gap-3">
+          <span className="text-sm">
+            Deleted “{row.text.length > 24 ? `${row.text.slice(0, 24)}…` : row.text}”
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              undone = true;
+              clearTimeout(timer);
+              setHiddenIds((prev) => {
+                const next = new Set(prev);
+                next.delete(row.id);
+                return next;
+              });
+              toast.dismiss(t.id);
+            }}
+            className="rounded-md bg-accent-blue px-2 py-1 text-xs font-semibold text-white"
+          >
+            Undo
+          </button>
+        </span>
+      ),
+      { duration: 5000 }
+    );
+  };
 
   const groups = useMemo(
     () =>
@@ -115,12 +167,13 @@ export default function KeywordsTable({
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return rows
+      .filter((r) => !hiddenIds.has(r.id))
       .filter((r) => (term ? r.text.toLowerCase().includes(term) : true))
       .filter((r) => (groupFilter === "all" ? true : r.group === groupFilter))
       .filter((r) => matchesPosition(r, positionFilter))
       .filter((r) => matchesMovement(r, movementFilter))
       .sort((a, b) => compare(a, b, sortKey, sortDirection));
-  }, [rows, search, groupFilter, positionFilter, movementFilter, sortKey, sortDirection]);
+  }, [rows, hiddenIds, search, groupFilter, positionFilter, movementFilter, sortKey, sortDirection]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount - 1);
@@ -289,7 +342,7 @@ export default function KeywordsTable({
                 onClick={() => setTrendKeywordId(row.id)}
                 className="group cursor-pointer border-b border-border-base transition-colors last:border-0 hover:bg-bg-secondary"
               >
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <div className="flex items-center gap-2">
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-text-primary">
@@ -315,23 +368,49 @@ export default function KeywordsTable({
                     </button>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <GroupBadge group={row.group} />
                 </td>
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <PositionBadge position={row.desktopPos} />
                 </td>
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <PositionBadge position={row.mobilePos} />
                 </td>
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <DeltaBadge delta={row.change} />
                 </td>
-                <td className="px-4 py-3">
+                <td className={cellPadding}>
                   <Sparkline data={row.trend} />
                 </td>
-                <td className="max-w-[160px] truncate px-4 py-3 text-xs text-text-secondary">
-                  {row.urlPath ?? "–"}
+                <td className={`max-w-[160px] truncate text-xs text-text-secondary ${cellPadding}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate">{row.urlPath ?? "–"}</span>
+                    <span className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        type="button"
+                        aria-label={`Trend for ${row.text}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTrendKeywordId(row.id);
+                        }}
+                        className="rounded p-1 text-text-muted transition-colors hover:text-accent-blue"
+                      >
+                        <LineChart size={13} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${row.text}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteKeyword(row);
+                        }}
+                        className="rounded p-1 text-text-muted transition-colors hover:text-accent-red"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </span>
+                  </div>
                 </td>
               </motion.tr>
             ))}

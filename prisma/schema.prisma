@@ -13,6 +13,7 @@ model Project {
   domain       String
   gscProperty  String // e.g. "sc-domain:example.com" or "https://example.com/"
   location     String            @default("Iran")
+  color        String? // optional hex accent for the project's card/avatar
   ga4PropertyId String? // Google Analytics 4 property id, e.g. "properties/123456789"
   sheetId      String? // Google Sheet id for the Live Sheet export
   createdAt    DateTime          @default(now())
@@ -22,7 +23,9 @@ model Project {
   annotations  Annotation[]
   shareLinks   ShareLink[]
   indexChecks  UrlIndexStatus[]
+  indexHistory UrlIndexHistory[]
   speedResults PageSpeedResult[]
+  competitors  Competitor[]
 }
 
 model Keyword {
@@ -105,7 +108,7 @@ model ShareLink {
   @@index([projectId])
 }
 
-// Cached URL Inspection API results, one row per page URL
+// Cached URL Inspection API results, one row per page URL (latest snapshot)
 model UrlIndexStatus {
   id            Int       @id @default(autoincrement())
   project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -124,7 +127,53 @@ model UrlIndexStatus {
   @@index([projectId])
 }
 
-// Cached PageSpeed Insights results, one row per page URL + strategy
+// Append-only history of index verdicts so coverage trends can be charted
+model UrlIndexHistory {
+  id            Int      @id @default(autoincrement())
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId     Int
+  urlPath       String
+  verdict       String
+  coverageState String?
+  day           String // "yyyy-MM-dd" — one snapshot per URL per day
+  checkedAt     DateTime @default(now())
+
+  @@unique([projectId, urlPath, day])
+  @@index([projectId, day])
+}
+
+// A competitor domain (or the project's own site, isSelf=true) whose SERP
+// positions are tracked head-to-head for a set of keywords.
+model Competitor {
+  id        Int                 @id @default(autoincrement())
+  project   Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId Int
+  domain    String
+  label     String?
+  isSelf    Boolean             @default(false)
+  createdAt DateTime            @default(now())
+  rankings  CompetitorRanking[]
+
+  @@unique([projectId, domain])
+  @@index([projectId])
+}
+
+// One scraped SERP position for a competitor on a keyword, per day.
+model CompetitorRanking {
+  id           Int        @id @default(autoincrement())
+  competitor   Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  competitorId Int
+  keyword      String
+  position     Int? // null = not found in the scraped results
+  day          String // "yyyy-MM-dd"
+  checkedAt    DateTime   @default(now())
+
+  @@unique([competitorId, keyword, day])
+  @@index([competitorId])
+}
+
+// PageSpeed Insights results — one row per page URL + strategy + day so the
+// latest score is a cache AND the daily history can be charted over time.
 model PageSpeedResult {
   id          Int      @id @default(autoincrement())
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -137,8 +186,9 @@ model PageSpeedResult {
   inpMs       Float?
   fcpMs       Float?
   ttfbMs      Float?
+  day         String // "yyyy-MM-dd"
   checkedAt   DateTime @default(now())
 
-  @@unique([projectId, urlPath, strategy])
+  @@unique([projectId, urlPath, strategy, day])
   @@index([projectId])
 }

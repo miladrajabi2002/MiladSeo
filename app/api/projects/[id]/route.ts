@@ -39,6 +39,7 @@ export async function GET(
       domain: project.domain,
       gscProperty: project.gscProperty,
       location: project.location,
+      color: project.color,
       lastSyncAt: project.lastSyncAt?.toISOString() ?? null,
       createdAt: project.createdAt.toISOString(),
       keywordCount: project._count.keywords,
@@ -52,6 +53,7 @@ export async function GET(
 
 interface PatchProjectBody {
   ga4PropertyId?: unknown;
+  color?: unknown;
 }
 
 /** PATCH updates editable project fields (currently the GA4 property link). */
@@ -67,16 +69,22 @@ export async function PATCH(
     if (!project) return notFound("Project");
 
     const body = (await request.json()) as PatchProjectBody;
-    const data: { ga4PropertyId?: string | null } = {};
+    const data: { ga4PropertyId?: string | null; color?: string | null } = {};
     if (body.ga4PropertyId !== undefined) {
       data.ga4PropertyId =
         typeof body.ga4PropertyId === "string" && body.ga4PropertyId.trim()
           ? body.ga4PropertyId.trim()
           : null;
     }
+    if (body.color !== undefined) {
+      data.color =
+        typeof body.color === "string" && /^#[0-9a-fA-F]{6}$/.test(body.color)
+          ? body.color
+          : null;
+    }
 
     const updated = await prisma.project.update({ where: { id }, data });
-    return ok({ id: updated.id, ga4PropertyId: updated.ga4PropertyId });
+    return ok({ id: updated.id, ga4PropertyId: updated.ga4PropertyId, color: updated.color });
   } catch (error) {
     return serverError(error);
   }

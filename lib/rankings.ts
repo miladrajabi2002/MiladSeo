@@ -27,12 +27,21 @@ interface KeywordWithRankings {
 
 const LOOKBACK_DAYS = 30;
 
-async function loadKeywords(projectId: number): Promise<KeywordWithRankings[]> {
+/** Clamp a requested history window to a sane range (GSC keeps ~16 months). */
+export function clampDays(days: number | undefined, fallback = LOOKBACK_DAYS): number {
+  if (!days || !Number.isFinite(days)) return fallback;
+  return Math.min(Math.max(Math.round(days), 1), 480);
+}
+
+async function loadKeywords(
+  projectId: number,
+  days: number = LOOKBACK_DAYS
+): Promise<KeywordWithRankings[]> {
   const keywords = await prisma.keyword.findMany({
     where: { projectId },
     include: {
       rankings: {
-        where: { date: { gte: subDays(new Date(), LOOKBACK_DAYS) } },
+        where: { date: { gte: subDays(new Date(), days) } },
         orderBy: { date: "asc" },
         select: {
           position: true,
@@ -128,15 +137,19 @@ export function toKeywordRow(k: KeywordWithRankings): KeywordRow {
   };
 }
 
-export async function getKeywordRows(projectId: number): Promise<KeywordRow[]> {
-  const keywords = await loadKeywords(projectId);
+export async function getKeywordRows(
+  projectId: number,
+  days?: number
+): Promise<KeywordRow[]> {
+  const keywords = await loadKeywords(projectId, clampDays(days));
   return keywords.map(toKeywordRow);
 }
 
 export async function getOverviewStats(
-  projectId: number
+  projectId: number,
+  days?: number
 ): Promise<OverviewStats> {
-  const rows = await getKeywordRows(projectId);
+  const rows = await getKeywordRows(projectId, days);
   const positions = rows
     .map((r) => r.desktopPos)
     .filter((p): p is number => p !== null);
@@ -179,8 +192,11 @@ export async function getOverviewStats(
   };
 }
 
-export async function getMovers(projectId: number): Promise<MoversData> {
-  const rows = await getKeywordRows(projectId);
+export async function getMovers(
+  projectId: number,
+  days?: number
+): Promise<MoversData> {
+  const rows = await getKeywordRows(projectId, days);
 
   const improved = rows
     .filter(
@@ -217,8 +233,11 @@ export async function getMovers(projectId: number): Promise<MoversData> {
   return { improved, dropped };
 }
 
-export async function getMobileData(projectId: number): Promise<MobileData> {
-  const all = await getKeywordRows(projectId);
+export async function getMobileData(
+  projectId: number,
+  days?: number
+): Promise<MobileData> {
+  const all = await getKeywordRows(projectId, days);
 
   const mobileRows = all.filter(
     (r): r is KeywordRow & { mobilePos: number } => r.mobilePos !== null
@@ -268,9 +287,10 @@ export async function getMobileData(projectId: number): Promise<MobileData> {
 }
 
 export async function getHistoryMatrix(
-  projectId: number
+  projectId: number,
+  days?: number
 ): Promise<HistoryMatrix> {
-  const keywords = await loadKeywords(projectId);
+  const keywords = await loadKeywords(projectId, clampDays(days));
 
   const dateSet = new Set<string>();
   for (const k of keywords) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { MousePointerClick } from "lucide-react";
 import { useCalendar } from "@/contexts/CalendarContext";
@@ -8,6 +9,7 @@ import {
   Area,
   CartesianGrid,
   ComposedChart,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,6 +17,8 @@ import {
 } from "recharts";
 import type { TooltipProps } from "recharts";
 import type { TrafficPoint } from "@/lib/types";
+
+type Metric = "both" | "clicks" | "impressions" | "ctr";
 
 interface TrafficChartProps {
   series: TrafficPoint[];
@@ -50,6 +54,19 @@ export default function TrafficChart({
   avgCtr,
 }: TrafficChartProps) {
   const { calendar } = useCalendar();
+  const [metric, setMetric] = useState<Metric>("both");
+
+  const METRIC_TABS: { key: Metric; label: string }[] = [
+    { key: "both", label: "Both" },
+    { key: "clicks", label: "Clicks" },
+    { key: "impressions", label: "Impressions" },
+    { key: "ctr", label: "CTR" },
+  ];
+
+  const showClicks = metric === "both" || metric === "clicks";
+  const showImpr = metric === "both" || metric === "impressions";
+  const showCtr = metric === "ctr";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -62,12 +79,28 @@ export default function TrafficChart({
           <div className="flex items-center gap-2">
             <MousePointerClick size={15} className="text-accent-blue" />
             <h3 className="text-sm font-semibold text-text-primary">
-              Clicks & Impressions
+              Clicks, Impressions &amp; CTR
             </h3>
           </div>
           <p className="mt-0.5 text-xs text-text-muted">
             Search Console traffic, all tracked queries combined
           </p>
+          <div className="mt-2 flex rounded-lg border border-border-base p-0.5">
+            {METRIC_TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setMetric(t.key)}
+                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  metric === t.key
+                    ? "bg-accent-blue text-white"
+                    : "text-text-secondary hover:text-text-primary"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex gap-2">
           <div className="rounded-lg border border-border-base bg-bg-secondary px-3 py-1.5 text-center">
@@ -137,6 +170,9 @@ export default function TrafficChart({
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
+                hide={!showClicks && !showCtr}
+                unit={showCtr ? "%" : undefined}
+                domain={showCtr ? [0, "auto"] : undefined}
               />
               <YAxis
                 yAxisId="impressions"
@@ -145,37 +181,62 @@ export default function TrafficChart({
                 axisLine={false}
                 tickLine={false}
                 allowDecimals={false}
+                hide={!showImpr}
               />
               <Tooltip content={<TrafficTooltip />} />
-              <Area
-                yAxisId="impressions"
-                type="monotone"
-                dataKey="impressions"
-                stroke="var(--accent-yellow)"
-                strokeWidth={1.5}
-                fill="url(#impr-grad)"
-              />
-              <Area
-                yAxisId="clicks"
-                type="monotone"
-                dataKey="clicks"
-                stroke="var(--accent-blue)"
-                strokeWidth={2}
-                fill="url(#clicks-grad)"
-              />
+              {showImpr ? (
+                <Area
+                  yAxisId="impressions"
+                  type="monotone"
+                  dataKey="impressions"
+                  stroke="var(--accent-yellow)"
+                  strokeWidth={1.5}
+                  fill="url(#impr-grad)"
+                />
+              ) : null}
+              {showClicks ? (
+                <Area
+                  yAxisId="clicks"
+                  type="monotone"
+                  dataKey="clicks"
+                  stroke="var(--accent-blue)"
+                  strokeWidth={2}
+                  fill="url(#clicks-grad)"
+                />
+              ) : null}
+              {showCtr ? (
+                <Line
+                  yAxisId="clicks"
+                  type="monotone"
+                  dataKey="ctr"
+                  stroke="var(--accent-green)"
+                  strokeWidth={2}
+                  dot={{ r: 2 }}
+                  connectNulls
+                />
+              ) : null}
             </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-border-base pt-3 text-xs text-text-secondary">
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded bg-accent-blue" /> Clicks (left)
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded bg-accent-yellow" /> Impressions
-          (right)
-        </span>
+        {showClicks ? (
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded bg-accent-blue" /> Clicks (left)
+          </span>
+        ) : null}
+        {showImpr ? (
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded bg-accent-yellow" /> Impressions
+            (right)
+          </span>
+        ) : null}
+        {showCtr ? (
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded bg-accent-green" /> CTR (%)
+          </span>
+        ) : null}
       </div>
     </motion.div>
   );

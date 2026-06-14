@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { Plus } from "lucide-react";
 import KeywordsTable from "@/components/project/KeywordsTable";
+import AiClusterButton from "@/components/project/AiClusterButton";
 import Modal from "@/components/ui/Modal";
 import { TableSkeleton } from "@/components/ui/LoadingSkeleton";
 import { apiGet, apiPost, errorMessage } from "@/lib/client";
@@ -76,14 +77,17 @@ export default function KeywordsPage() {
         <h2 className="text-base font-semibold text-text-primary">
           All Keywords{rows ? ` (${rows.length})` : ""}
         </h2>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-border-base bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary"
-        >
-          <Plus size={14} />
-          Add Keywords
-        </button>
+        <div className="flex items-center gap-2">
+          {rows && rows.length > 0 ? <AiClusterButton projectId={projectId} /> : null}
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-border-base bg-bg-card px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:text-text-primary"
+          >
+            <Plus size={14} />
+            Add Keywords
+          </button>
+        </div>
       </div>
 
       {rows === null ? (

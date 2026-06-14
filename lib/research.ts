@@ -15,6 +15,11 @@ const LOCALE: Record<string, { hl: string; gl: string }> = {
   Other: { hl: "en", gl: "us" },
 };
 
+/** Resolves Google hl/gl hints for a project location. */
+export function localeFor(location: string | undefined): { hl: string; gl: string } {
+  return LOCALE[location ?? "Other"] ?? LOCALE.Other;
+}
+
 // Modifiers fanned out around the seed to surface long-tail + question queries
 const EN_MODIFIERS = ["how", "what", "best", "vs", "for", "price", "buy", "free", "near me"];
 const FA_MODIFIERS = ["بهترین", "قیمت", "خرید", "چیست", "آموزش", "رایگان", "چگونه"];

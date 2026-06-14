@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import MobileComparisonTable from "@/components/project/MobileComparisonTable";
 import MobilePhoneMockup from "@/components/project/MobilePhoneMockup";
 import StatCard from "@/components/ui/StatCard";
+import RangeSelector from "@/components/ui/RangeSelector";
 import {
   StatRowSkeleton,
   TableSkeleton,
@@ -19,11 +20,12 @@ export default function MobilePage() {
   const projectId = params.id;
   const [data, setData] = useState<MobileData | null>(null);
   const [location, setLocation] = useState("");
+  const [days, setDays] = useState<number>(30);
 
   const load = useCallback(() => {
     if (!projectId) return;
     Promise.all([
-      apiGet<MobileData>(`/api/projects/${projectId}/mobile`),
+      apiGet<MobileData>(`/api/projects/${projectId}/mobile?days=${days}`),
       apiGet<{ location: string }>(`/api/projects/${projectId}`),
     ])
       .then(([mobile, project]) => {
@@ -31,7 +33,7 @@ export default function MobilePage() {
         setLocation(project.location);
       })
       .catch((error) => toast.error(errorMessage(error)));
-  }, [projectId]);
+  }, [projectId, days]);
 
   useEffect(() => {
     load();
@@ -55,6 +57,10 @@ export default function MobilePage() {
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="space-y-6"
     >
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-text-primary">Desktop vs Mobile</h2>
+        <RangeSelector value={days} onChange={setDays} allowCustom />
+      </div>
       <motion.div
         initial="hidden"
         animate="visible"

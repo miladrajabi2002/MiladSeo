@@ -109,7 +109,14 @@ export default function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
                       : "text-text-secondary hover:bg-bg-secondary hover:text-text-primary"
                   }`}
                 >
-                  <Globe size={14} className="shrink-0" />
+                  {project.color ? (
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ background: project.color }}
+                    />
+                  ) : (
+                    <Globe size={14} className="shrink-0" />
+                  )}
                   <span className="truncate">{project.domain}</span>
                 </Link>
               </motion.div>

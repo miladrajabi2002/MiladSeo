@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { LogOut, Menu, PlugZap, Unplug } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import CalendarToggle from "@/components/ui/CalendarToggle";
+import DensityToggle from "@/components/ui/DensityToggle";
 import { apiDelete, apiGet, errorMessage } from "@/lib/client";
 
 interface HeaderProps {
@@ -103,6 +104,7 @@ export default function Header({ onOpenMobileMenu }: HeaderProps) {
           </span>
         ) : null}
         <CalendarToggle />
+        <DensityToggle />
         <ThemeToggle />
         <button
           type="button"

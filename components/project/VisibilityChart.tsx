@@ -18,6 +18,7 @@ import {
 } from "recharts";
 import type { TooltipProps } from "recharts";
 import { apiGet, errorMessage } from "@/lib/client";
+import RangeSelector from "@/components/ui/RangeSelector";
 import type { VisibilityData } from "@/lib/types";
 
 function VisibilityTooltip({
@@ -41,7 +42,7 @@ function VisibilityTooltip({
 
 export default function VisibilityChart({ projectId }: { projectId: number }) {
   const { calendar } = useCalendar();
-  const [days, setDays] = useState<30 | 90>(30);
+  const [days, setDays] = useState<number>(30);
   const [data, setData] = useState<VisibilityData | null>(null);
 
   useEffect(() => {
@@ -104,22 +105,7 @@ export default function VisibilityChart({ projectId }: { projectId: number }) {
               ) : null}
             </div>
           ) : null}
-          <div className="flex rounded-lg border border-border-base p-0.5">
-            {([30, 90] as const).map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setDays(d)}
-                className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
-                  days === d
-                    ? "bg-accent-blue text-white"
-                    : "text-text-secondary hover:text-text-primary"
-                }`}
-              >
-                {d}d
-              </button>
-            ))}
-          </div>
+          <RangeSelector value={days} onChange={setDays} allowCustom />
         </div>
       </div>
 

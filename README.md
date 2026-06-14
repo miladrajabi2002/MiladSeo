@@ -41,33 +41,38 @@ stores it in a local database, and shows you:
 | **Keywords** | Every keyword you rank for + position, clicks, 7-day change | Know which keywords you own and which need work |
 | **Movers & Drops** | Keywords that moved up or down significantly | Spot wins and problems instantly |
 | **Mobile** | Mobile vs desktop position comparison | Google prioritises mobile — catch gaps before they hurt |
+| **Competitors** | Head-to-head SERP position vs rival domains | See exactly where you stand against competitors |
+| **AI Audit** | Whole-site expert audit + prioritized to-do list | Know what to fix first, in plain language |
 | **Alerts** | Auto-alert when any keyword drops more than 5 positions | No need to check daily — it notifies you |
 
 ---
 
 ## Features
 
-- **Overview** — Top 10 / Top 20 / Top 50 counts, average position, position distribution chart
+- **Overview** — Top 10 / Top 20 / Top 50 counts, average position, position distribution chart, with a **date-range selector (7 days → 1 year + custom)**
 - **Period comparison** — this week vs last week / this month vs last month across position, Top 3/10, clicks, impressions and CTR
-- **Visibility score** — a single share-of-voice style health number with a 30/90-day trend chart
+- **Visibility score** — a single share-of-voice style health number with a trend chart over any range
 - **Annotations** — log site changes on a timeline and see them as markers on every chart
-- **All Keywords** — sortable, filterable table with desktop/mobile positions, 7-day change, sparkline trends
-- **Per-keyword trend chart** — click any keyword for a 30/90-day desktop + mobile position chart
+- **All Keywords** — sortable, filterable table with desktop/mobile positions, change, sparkline trends, **delete-with-Undo**, adjustable **table density**
+- **AI Keyword Clustering** — group all tracked keywords into topic clusters by search intent
+- **Per-keyword trend chart** — click any keyword for a desktop + mobile position chart
 - **Pages view** — per-URL performance: keyword count, best/avg position, clicks, trend
-- **Insights** — clicks/impressions chart, CTR opportunities (high impressions + low CTR = fix the title/description) and keyword cannibalization detection
-- **Movers & Drops** — week-over-week improved and dropped keywords
+- **Insights** — clicks/impressions/CTR chart (metric toggle), CTR opportunities, **AI title/meta rewrites**, **SERP feature breakdown**, and keyword cannibalization detection
+- **Movers & Drops** — improved and dropped keywords over any selected range
+- **Competitors** — add rival domains and compare Google SERP positions head-to-head (best-effort scrape)
 - **Mobile** — mobile vs desktop comparison with gap column
-- **Site Health** — Google index coverage per page (URL Inspection API) + PageSpeed / Core Web Vitals scores + real-user Core Web Vitals history (Chrome UX Report)
-- **AI Audit** — connect a Claude or OpenAI API key and get an expert SEO audit: health score, prioritized recommendations, quick wins and risks
+- **Site Health** — Google index coverage per page (URL Inspection API) + PageSpeed / Core Web Vitals scores + real-user Core Web Vitals history (Chrome UX Report), each with a **historical trend chart**, plus **live single-URL inspection**
+- **Sitemap Explorer** — parse the site's sitemap(s) and flag tracked vs untracked URLs
+- **AI Audit** — connect a Claude, OpenAI or OpenRouter API key and get an expert SEO audit: health score, prioritized recommendations, quick wins and risks
 - **Analytics** — link a Google Analytics 4 property to see sessions, users, conversions, channels and top landing pages next to your rankings
 - **On-Page checker** — inspect any URL's title, meta, headings, canonical, robots, Open Graph, schema, redirects, robots.txt, sitemap and broken links
-- **Keyword Research** — expand a seed keyword into real Google Autocomplete suggestions, localized to the project
+- **Keyword Research** — expand a seed keyword into real Google Autocomplete suggestions, localized to the project, with **one-click "track"** to add ideas
 - **Public client dashboard** — shareable read-only report link, revocable anytime
 - **Alerts** — automatic alerts when a keyword moves more than 5 positions
-- **Live Sheet** — one-click export to a Google Sheet (keywords, movers, full history)
-- **CSV export**
-- **Daily auto-sync** at 4:00 AM via built-in cron
-- Dark/light theme (system-aware), fully animated with Framer Motion
+- **Exports** — **CSV**, full **JSON** export, a printable **Report (Save as PDF)**, and one-click **Live Sheet** export to Google Sheets
+- **Configurable sync window + Deep Sync** — pull 30 / 90 / 180 / 365 days on demand
+- **Daily auto-sync** at 4:00 AM + **daily health pass** at 5:00 AM (index, PageSpeed, broken-link monitoring) via built-in cron
+- **Per-project color**, dark/light theme (system-aware), mobile bottom-nav + swipe, fully animated with Framer Motion
 - Multi-project — track as many sites as you want
 
 ---
@@ -79,8 +84,9 @@ stores it in a local database, and shows you:
 - Framer Motion, Recharts, Lucide icons
 - SQLite via Prisma ORM
 - NextAuth.js (single-admin credentials)
-- googleapis (Search Console + Sheets)
-- node-cron inside a custom Next.js server
+- googleapis (Search Console, URL Inspection, Sheets, Analytics Admin + Data)
+- Anthropic SDK + OpenAI-compatible providers (OpenAI, OpenRouter) for the AI features
+- node-cron inside a custom Next.js server (daily sync + health pass)
 
 ---
 

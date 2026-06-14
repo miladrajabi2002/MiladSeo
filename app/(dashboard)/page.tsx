@@ -13,6 +13,11 @@ import type { ProjectSummary } from "@/lib/types";
 
 const LOCATIONS = ["Iran", "UAE", "Saudi Arabia", "Egypt", "UK", "USA", "Other"];
 
+const PROJECT_COLORS = [
+  "#3b82f6", "#8b5cf6", "#ec4899", "#ef4444", "#f59e0b",
+  "#22c55e", "#06b6d4", "#6366f1", "#14b8a6", "#64748b",
+];
+
 interface GscSite {
   siteUrl: string;
   permissionLevel: string;
@@ -34,6 +39,7 @@ export default function ProjectsPage() {
     domain: "",
     gscProperty: "",
     location: "Iran",
+    color: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [gscSites, setGscSites] = useState<GscSite[] | null>(null);
@@ -93,7 +99,7 @@ export default function ProjectsPage() {
       toast.success(`Project "${form.name}" created`);
       setModalOpen(false);
       setGscSites(null);
-      setForm({ name: "", domain: "", gscProperty: "", location: "Iran" });
+      setForm({ name: "", domain: "", gscProperty: "", location: "Iran", color: "" });
       load();
       window.dispatchEvent(new Event("projects-changed"));
     } catch (error) {
@@ -108,6 +114,22 @@ export default function ProjectsPage() {
 
   const eligibleSites = gscSites?.filter((s) => s.eligible) ?? [];
   const restrictedSites = gscSites?.filter((s) => !s.eligible) ?? [];
+
+  const totals = (projects ?? []).reduce(
+    (acc, p) => {
+      acc.keywords += p.keywordCount;
+      acc.top10 += p.top10;
+      acc.alerts += p.unreadAlerts;
+      if (p.avgPosition !== null) {
+        acc.posSum += p.avgPosition;
+        acc.posCount += 1;
+      }
+      return acc;
+    },
+    { keywords: 0, top10: 0, alerts: 0, posSum: 0, posCount: 0 }
+  );
+  const avgPos =
+    totals.posCount > 0 ? Math.round((totals.posSum / totals.posCount) * 10) / 10 : null;
 
   return (
     <motion.div
@@ -131,6 +153,32 @@ export default function ProjectsPage() {
           Add Project
         </button>
       </div>
+
+      {/* Global stats bar */}
+      {projects && projects.length > 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5"
+        >
+          {[
+            { label: "Projects", value: projects.length, color: "text-text-primary" },
+            { label: "Keywords", value: totals.keywords.toLocaleString(), color: "text-text-primary" },
+            { label: "In top 10", value: totals.top10.toLocaleString(), color: "text-accent-green" },
+            { label: "Avg position", value: avgPos ?? "–", color: "text-accent-blue" },
+            { label: "Unread alerts", value: totals.alerts, color: totals.alerts > 0 ? "text-accent-red" : "text-text-primary" },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl border border-border-base bg-bg-card px-4 py-3 shadow-card"
+            >
+              <p className={`text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
+              <p className="text-[11px] text-text-muted">{s.label}</p>
+            </div>
+          ))}
+        </motion.div>
+      ) : null}
 
       <div className="mt-6">
         {projects === null ? (
@@ -411,6 +459,35 @@ export default function ProjectsPage() {
               ))}
             </select>
           </label>
+
+          <div className="mt-4">
+            <span className="block text-sm font-medium text-text-secondary">
+              Color (optional)
+            </span>
+            <div className="mt-1.5 flex flex-wrap items-center gap-2">
+              {PROJECT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={`Pick color ${c}`}
+                  onClick={() => setForm({ ...form, color: form.color === c ? "" : c })}
+                  className={`h-7 w-7 rounded-full transition-transform hover:scale-110 ${
+                    form.color === c ? "ring-2 ring-offset-2 ring-offset-bg-primary" : ""
+                  }`}
+                  style={{ background: c, boxShadow: form.color === c ? `0 0 0 2px ${c}` : undefined }}
+                />
+              ))}
+              {form.color ? (
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, color: "" })}
+                  className="text-xs text-text-muted hover:text-accent-red"
+                >
+                  clear
+                </button>
+              ) : null}
+            </div>
+          </div>
 
           <div className="mt-6 flex justify-end gap-2">
             <button

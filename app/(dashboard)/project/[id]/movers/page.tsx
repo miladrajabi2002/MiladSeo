@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import MoversDropsView from "@/components/project/MoversDropsView";
+import RangeSelector from "@/components/ui/RangeSelector";
 import { TableSkeleton } from "@/components/ui/LoadingSkeleton";
 import { apiGet, errorMessage } from "@/lib/client";
 import type { MoversData } from "@/lib/types";
@@ -13,13 +14,14 @@ export default function MoversPage() {
   const params = useParams<{ id: string }>();
   const projectId = params.id;
   const [movers, setMovers] = useState<MoversData | null>(null);
+  const [days, setDays] = useState<number>(30);
 
   const load = useCallback(() => {
     if (!projectId) return;
-    apiGet<MoversData>(`/api/projects/${projectId}/movers`)
+    apiGet<MoversData>(`/api/projects/${projectId}/movers?days=${days}`)
       .then(setMovers)
       .catch((error) => toast.error(errorMessage(error)));
-  }, [projectId]);
+  }, [projectId, days]);
 
   useEffect(() => {
     load();
@@ -61,7 +63,12 @@ export default function MoversPage() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
+      className="space-y-4"
     >
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-text-primary">Movers &amp; Drops</h2>
+        <RangeSelector value={days} onChange={setDays} allowCustom />
+      </div>
       <MoversDropsView movers={movers} />
     </motion.div>
   );

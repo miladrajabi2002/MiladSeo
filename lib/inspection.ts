@@ -1,7 +1,8 @@
 import { google } from "googleapis";
+import { format, subDays } from "date-fns";
 import { prisma } from "./prisma";
 import { getAuthorizedClient } from "./gsc";
-import type { IndexStatusRow } from "./types";
+import type { IndexCoveragePoint, IndexStatusRow } from "./types";
 
 /** Google allows 2000 inspections/day per property; keep batches small. */
 const MAX_BATCH = 25;
@@ -100,11 +101,13 @@ export async function inspectUrls(
       },
     });
     const status = response.data.inspectionResult?.indexStatusResult;
+    const verdict = status?.verdict ?? "VERDICT_UNSPECIFIED";
+    const coverageState = status?.coverageState ?? null;
     const record = await prisma.urlIndexStatus.upsert({
       where: { projectId_urlPath: { projectId, urlPath } },
       update: {
-        verdict: status?.verdict ?? "VERDICT_UNSPECIFIED",
-        coverageState: status?.coverageState ?? null,
+        verdict,
+        coverageState,
         indexingState: status?.indexingState ?? null,
         robotsState: status?.robotsTxtState ?? null,
         fetchState: status?.pageFetchState ?? null,
@@ -117,8 +120,8 @@ export async function inspectUrls(
       create: {
         projectId,
         urlPath,
-        verdict: status?.verdict ?? "VERDICT_UNSPECIFIED",
-        coverageState: status?.coverageState ?? null,
+        verdict,
+        coverageState,
         indexingState: status?.indexingState ?? null,
         robotsState: status?.robotsTxtState ?? null,
         fetchState: status?.pageFetchState ?? null,
@@ -128,8 +131,45 @@ export async function inspectUrls(
         googleCanonical: status?.googleCanonical ?? null,
       },
     });
+
+    // Append-only daily snapshot for the coverage trend chart
+    const day = format(new Date(), "yyyy-MM-dd");
+    await prisma.urlIndexHistory.upsert({
+      where: { projectId_urlPath_day: { projectId, urlPath, day } },
+      update: { verdict, coverageState, checkedAt: new Date() },
+      create: { projectId, urlPath, verdict, coverageState, day },
+    });
+
     results.push(toRow(record));
   }
 
   return results;
+}
+
+/**
+ * Daily index-coverage trend: how many URLs were PASS / FAIL / NEUTRAL on each
+ * day they were inspected, for the last `days` days.
+ */
+export async function getIndexHistory(
+  projectId: number,
+  days = 90
+): Promise<IndexCoveragePoint[]> {
+  const since = format(subDays(new Date(), Math.min(Math.max(days, 1), 480)), "yyyy-MM-dd");
+  const rows = await prisma.urlIndexHistory.findMany({
+    where: { projectId, day: { gte: since } },
+    orderBy: { day: "asc" },
+  });
+
+  const byDay = new Map<string, { pass: number; fail: number; neutral: number }>();
+  for (const r of rows) {
+    const e = byDay.get(r.day) ?? { pass: 0, fail: 0, neutral: 0 };
+    if (r.verdict === "PASS") e.pass++;
+    else if (r.verdict === "FAIL") e.fail++;
+    else e.neutral++;
+    byDay.set(r.day, e);
+  }
+
+  return Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([day, v]) => ({ day, ...v }));
 }

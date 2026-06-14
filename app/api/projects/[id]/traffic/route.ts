@@ -19,7 +19,8 @@ export async function GET(
   const id = parseId(params.id);
   if (id === null) return fail("Invalid project id", "INVALID_ID", 422);
   const daysParam = new URL(request.url).searchParams.get("days");
-  const days = daysParam === "90" ? 90 : 30;
+  const parsed = daysParam ? Number.parseInt(daysParam, 10) : 30;
+  const days = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 480) : 30;
   try {
     return ok(await getTraffic(id, days));
   } catch (error) {

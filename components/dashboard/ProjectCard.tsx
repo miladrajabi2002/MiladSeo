@@ -71,12 +71,17 @@ export default function ProjectCard({ project, onChanged }: ProjectCardProps) {
       transition={{ duration: 0.35, ease: "easeOut" }}
       whileHover={{ y: -4 }}
       onClick={() => router.push(`/project/${project.id}`)}
-      className="group cursor-pointer rounded-2xl border border-border-base bg-bg-card p-5 shadow-card transition-shadow hover:shadow-card-hover"
+      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-border-base bg-bg-card p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover"
     >
+      {/* Colored top accent (project color, else avatar gradient blue) */}
+      <span
+        className="pointer-events-none absolute inset-x-0 top-0 h-1"
+        style={{ background: project.color ?? "var(--accent-blue)" }}
+      />
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <SiteAvatar domain={project.domain} size={42} />
+          <SiteAvatar domain={project.domain} size={42} color={project.color} />
           <div className="min-w-0">
             <h3 className="truncate text-lg font-bold text-text-primary">
               {project.domain}

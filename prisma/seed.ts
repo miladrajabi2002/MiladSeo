@@ -62,6 +62,7 @@ async function main(): Promise<void> {
       domain: "demo-rentcar.ae",
       gscProperty: "sc-domain:demo-rentcar.ae",
       location: "UAE",
+      color: "#06b6d4",
       lastSyncAt: new Date(),
     },
   });
@@ -171,8 +172,111 @@ async function main(): Promise<void> {
     },
   });
 
+  // --- PageSpeed history (mobile) for two pages over ~10 days ---
+  const speedPaths = ["/", "/dubai-airport"];
+  const speedRows: {
+    projectId: number;
+    urlPath: string;
+    strategy: string;
+    score: number;
+    lcpMs: number;
+    cls: number;
+    inpMs: number;
+    fcpMs: number;
+    ttfbMs: number;
+    day: string;
+    checkedAt: Date;
+  }[] = [];
+  for (const [pIdx, urlPath] of speedPaths.entries()) {
+    for (let daysAgo = 10; daysAgo >= 0; daysAgo--) {
+      const date = new Date(subDays(new Date(), daysAgo).setUTCHours(6, 0, 0, 0));
+      const day = date.toISOString().slice(0, 10);
+      const base = pIdx === 0 ? 72 : 64;
+      const score = Math.min(100, Math.max(40, Math.round(base + (10 - daysAgo) * 1.5 + noise(pIdx * 13 + daysAgo) * 4)));
+      speedRows.push({
+        projectId: project.id,
+        urlPath,
+        strategy: "mobile",
+        score,
+        lcpMs: Math.round(2600 - (10 - daysAgo) * 40 + noise(daysAgo) * 120),
+        cls: Math.round((0.08 + noise(daysAgo) * 0.02) * 1000) / 1000,
+        inpMs: Math.round(180 + noise(pIdx + daysAgo) * 30),
+        fcpMs: Math.round(1500 + noise(daysAgo) * 80),
+        ttfbMs: Math.round(420 + noise(daysAgo) * 60),
+        day,
+        checkedAt: date,
+      });
+    }
+  }
+  await prisma.pageSpeedResult.createMany({ data: speedRows });
+
+  // --- Index coverage history for a few pages over ~7 days ---
+  const indexPaths = ["/", "/dubai-airport", "/daily", "/toyota", "/no-deposit"];
+  const indexRows: {
+    projectId: number;
+    urlPath: string;
+    verdict: string;
+    coverageState: string;
+    day: string;
+    checkedAt: Date;
+  }[] = [];
+  for (let daysAgo = 6; daysAgo >= 0; daysAgo--) {
+    const date = new Date(subDays(new Date(), daysAgo).setUTCHours(7, 0, 0, 0));
+    const day = date.toISOString().slice(0, 10);
+    for (const [i, urlPath] of indexPaths.entries()) {
+      // Most pass; one flips to excluded on older days for a visible trend
+      const verdict = i === 4 && daysAgo > 3 ? "NEUTRAL" : "PASS";
+      indexRows.push({
+        projectId: project.id,
+        urlPath,
+        verdict,
+        coverageState:
+          verdict === "PASS" ? "Submitted and indexed" : "Crawled - currently not indexed",
+        day,
+        checkedAt: date,
+      });
+    }
+  }
+  await prisma.urlIndexHistory.createMany({ data: indexRows });
+
+  // --- Competitors + a SERP comparison snapshot ---
+  const self = await prisma.competitor.create({
+    data: { projectId: project.id, domain: "demo-rentcar.ae", label: "Your site", isSelf: true },
+  });
+  const rivalA = await prisma.competitor.create({
+    data: { projectId: project.id, domain: "rival-rentals.ae", label: "Rival Rentals" },
+  });
+  const rivalB = await prisma.competitor.create({
+    data: { projectId: project.id, domain: "fastcar.ae", label: "FastCar" },
+  });
+
+  const serpKeywords = [
+    "rent a car dubai",
+    "car rental dubai airport terminal 1",
+    "daily car rental dubai",
+    "rent a car dubai no deposit",
+  ];
+  const today = new Date().toISOString().slice(0, 10);
+  const compRows: {
+    competitorId: number;
+    keyword: string;
+    position: number | null;
+    day: string;
+  }[] = [];
+  for (const [k, keyword] of serpKeywords.entries()) {
+    compRows.push(
+      { competitorId: self.id, keyword, position: clampPosition(3 + k * 2 + noise(k) * 2), day: today },
+      { competitorId: rivalA.id, keyword, position: clampPosition(1 + k + noise(k + 5) * 2), day: today },
+      { competitorId: rivalB.id, keyword, position: clampPosition(6 + k * 2 + noise(k + 9) * 3), day: today }
+    );
+  }
+  await prisma.competitorRanking.createMany({
+    data: compRows.map((r) => ({ ...r, position: r.position === null ? null : Math.round(r.position) })),
+  });
+
   console.log(
-    `Seeded project "${project.name}" with ${SEED_KEYWORDS.length} keywords and ${HISTORY_DAYS} days of history.`
+    `Seeded project "${project.name}" with ${SEED_KEYWORDS.length} keywords, ${HISTORY_DAYS} days of history, ` +
+      `PageSpeed + index history, and ${serpKeywords.length} competitor SERP rows.`
   );
 }
 

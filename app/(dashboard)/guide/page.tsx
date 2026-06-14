@@ -132,6 +132,7 @@ function GuideFa() {
         </Step>
         <Step n={3}>
           <B>Sync Now</B> را بزن و صبر کن. اولین sync ۳۰ روز داده را روزبه‌روز می‌گیرد (یکی‌دو دقیقه).
+          برای تاریخچه‌ی بیشتر، از فلش کنار دکمه <B>Deep Sync</B> (۹۰/۱۸۰/۳۶۵ روز) را انتخاب کن.
         </Step>
         <Step n={4}>
           <B>Overview</B> را ببین تا تصویر کلی بگیری؛ بعد در <B>All Keywords</B> کلمات رتبه‌ی ۵–۲۰ را
@@ -154,18 +155,21 @@ function GuideFa() {
       <Section dir={dir} icon={<ListChecks size={16} />} title="۳) قابلیت‌ها و تب‌ها">
         <Bullets
           items={[
-            <><B>Overview</B> — میانگین رتبه، Top 3/10/20، توزیع، امتیاز Visibility، مقایسه‌ی دوره‌ای و Annotations.</>,
-            <><B>All Keywords</B> — جدول کامل با جستجو، فیلتر (گروه/رتبه/حرکت)، مرتب‌سازی و نمودار روند هر کلمه.</>,
-            <><B>Research</B> — تحقیق کلمه با Google Autocomplete (رایگان)، متناسب با کشور پروژه، با فیلتر سؤالات.</>,
+            <><B>Overview</B> — میانگین رتبه، Top 3/10/20، توزیع، امتیاز Visibility، مقایسه‌ی دوره‌ای و Annotations. با <B>انتخابگر بازه‌ی زمانی</B> (۷ روز تا ۱ سال + دلخواه).</>,
+            <><B>All Keywords</B> — جدول کامل با جستجو، فیلتر (گروه/رتبه/حرکت)، مرتب‌سازی، نمودار روند، <B>حذف با Undo</B> و <B>AI Cluster</B> (خوشه‌بندی هوشمند کلمات).</>,
+            <><B>Research</B> — تحقیق کلمه با Google Autocomplete (رایگان)، متناسب با کشور پروژه، با <B>افزودن سریع</B> (دکمه track) به لیست ردیابی.</>,
             <><B>Pages</B> — عملکرد هر URL: تعداد کلمات، بهترین/میانگین رتبه، کلیک و روند.</>,
-            <><B>Insights</B> — نمودار کلیک/نمایش، فرصت‌های CTR (تایتل/متا ضعیف)، و هم‌نوع‌خواری صفحات.</>,
+            <><B>Insights</B> — نمودار کلیک/نمایش/CTR (با toggle متریک)، فرصت‌های CTR، <B>بازنویسی تایتل/متا با AI</B>، ویژگی‌های SERP و هم‌نوع‌خواری صفحات.</>,
             <><B>Analytics (GA4)</B> — session، کاربر، conversion، کانال‌ها و صفحات فرود واقعی.</>,
-            <><B>Movers & Drops</B> — کلماتی که نسبت به هفته‌ی قبل صعود/افت کرده‌اند.</>,
+            <><B>Movers & Drops</B> — کلماتی که نسبت به دوره‌ی قبل صعود/افت کرده‌اند (با انتخاب بازه).</>,
+            <><B>Competitors</B> 🆕 — افزودن دامنه‌ی رقیب و مقایسه‌ی پوزیشن SERP به‌صورت رودررو.</>,
             <><B>Mobile</B> — مقایسه‌ی رتبه‌ی موبایل و دسکتاپ با ستون GAP.</>,
-            <><B>Site Health</B> — وضعیت ایندکس، PageSpeed، و Core Web Vitals واقعی کاربران (CrUX).</>,
+            <><B>Site Health</B> — وضعیت ایندکس، PageSpeed و CrUX — همراه <B>نمودار روند تاریخی</B> هرکدام و <B>Inspect زنده‌ی URL</B>.</>,
+            <><B>Sitemap</B> 🆕 — خواندن sitemap سایت و نمایش صفحات tracked/untracked.</>,
             <><B>On-Page</B> — چک تایتل/متا/H1/canonical/robots/Schema/ریدایرکت/sitemap و لینک‌های شکسته.</>,
             <><B>AI Audit</B> — ممیزی تخصصی کل سایت با امتیاز سلامت و توصیه‌های اولویت‌بندی‌شده.</>,
             <><B>Alerts</B> — هشدار خودکار برای هر جابجایی بیش از ۵ پله.</>,
+            <><B>خروجی</B> — دکمه‌های <B>CSV</B>، <B>JSON</B> (export کامل) و <B>Report</B> (گزارش قابل چاپ / PDF) در هدر پروژه.</>,
           ]}
         />
       </Section>
@@ -180,6 +184,8 @@ function GuideFa() {
           items={[
             <><B>تحلیل کلی (Master Audit):</B> همه‌ی گزارش‌ها (رتبه، ترافیک، CTR، CrUX، GA4، On-Page) را با هم تحلیل می‌کند و لیست کارِ اولویت‌بندی‌شده می‌دهد. دکمه‌ی میان‌بر <B>AI Audit</B> در هدر پروژه آن را مستقیم اجرا می‌کند.</>,
             <><B>AI Assist در تب‌ها:</B> در Overview، Insights، Site Health و On-Page یک پنل کمکی ظاهر می‌شود: «Analyze this tab» یا پرسش آزاد درباره‌ی دیتای همان تب.</>,
+            <><B>AI Cluster (تب Keywords):</B> همه‌ی کلمات را بر اساس موضوع و نیّت جستجو خوشه‌بندی می‌کند.</>,
+            <><B>بازنویسی تایتل/متا (تب Insights):</B> برای کلماتی که CTR ضعیف دارند، تایتل و متای جذاب‌تر پیشنهاد می‌دهد.</>,
           ]}
         />
         <p className="text-text-muted">هزینه را provider هوش مصنوعی حساب می‌کند؛ ممیزی‌ها کوتاه و ارزان‌اند.</p>
@@ -280,7 +286,10 @@ function GuideEn() {
       <Section dir={dir} icon={<Rocket size={16} />} title="2) Where do I start? (step by step)">
         <Step n={1}>Click <B>Connect Google</B> in the header and approve the read-only scopes.</Step>
         <Step n={2}>Click <B>Add Project</B>: name, domain, GSC property (from the dropdown), location.</Step>
-        <Step n={3}>Click <B>Sync Now</B> and wait — the first sync pulls 30 days day-by-day.</Step>
+        <Step n={3}>
+          Click <B>Sync Now</B> and wait — the first sync pulls 30 days day-by-day. For more history,
+          use the arrow beside the button for a <B>Deep Sync</B> (90/180/365 days).
+        </Step>
         <Step n={4}>
           Review <B>Overview</B>, then in <B>All Keywords</B> find position 5–20 keywords (best
           opportunities) and assign <B>groups</B>.
@@ -299,18 +308,21 @@ function GuideEn() {
       <Section dir={dir} icon={<ListChecks size={16} />} title="3) Features & tabs">
         <Bullets
           items={[
-            <><B>Overview</B> — avg position, Top 3/10/20, distribution, Visibility score, period comparison, Annotations.</>,
-            <><B>All Keywords</B> — full table with search, filters, sorting and per-keyword trend chart.</>,
-            <><B>Research</B> — keyword research via Google Autocomplete (free), localized, with question filtering.</>,
+            <><B>Overview</B> — avg position, Top 3/10/20, distribution, Visibility score, period comparison, Annotations. With a <B>date-range selector</B> (7 days to 1 year + custom).</>,
+            <><B>All Keywords</B> — full table with search, filters, sorting, trend chart, <B>delete with Undo</B>, adjustable <B>density</B>, and <B>AI Cluster</B> (smart topic grouping).</>,
+            <><B>Research</B> — keyword research via Google Autocomplete (free), localized, with <B>one-click “track”</B> to add ideas to your list.</>,
             <><B>Pages</B> — per-URL performance: keyword count, best/avg position, clicks, trend.</>,
-            <><B>Insights</B> — clicks/impressions chart, CTR opportunities, cannibalization.</>,
+            <><B>Insights</B> — clicks/impressions/CTR chart (metric toggle), CTR opportunities, <B>AI title/meta rewrites</B>, SERP features, cannibalization.</>,
             <><B>Analytics (GA4)</B> — sessions, users, conversions, channels and top landing pages.</>,
-            <><B>Movers & Drops</B> — keywords that rose/fell vs last week.</>,
+            <><B>Movers & Drops</B> — keywords that rose/fell vs the previous period (range selectable).</>,
+            <><B>Competitors</B> 🆕 — add rival domains and compare SERP positions head-to-head.</>,
             <><B>Mobile</B> — mobile vs desktop comparison with a GAP column.</>,
-            <><B>Site Health</B> — index coverage, PageSpeed, and real-user Core Web Vitals (CrUX).</>,
+            <><B>Site Health</B> — index coverage, PageSpeed and CrUX — each with a <B>historical trend chart</B> plus <B>live URL inspect</B>.</>,
+            <><B>Sitemap</B> 🆕 — parse the site's sitemap and show tracked vs untracked URLs.</>,
             <><B>On-Page</B> — title/meta/H1/canonical/robots/schema/redirects/sitemap and broken links.</>,
             <><B>AI Audit</B> — expert whole-site audit with health score and prioritized recommendations.</>,
             <><B>Alerts</B> — auto-alert for any move larger than 5 positions.</>,
+            <><B>Exports</B> — <B>CSV</B>, full <B>JSON</B> export and a printable <B>Report</B> (Save as PDF) from the project header.</>,
           ]}
         />
       </Section>
@@ -325,6 +337,8 @@ function GuideEn() {
           items={[
             <><B>Master Audit:</B> analyzes all reports together (rankings, traffic, CTR, CrUX, GA4, on-page) into a prioritized to-do list. The <B>AI Audit</B> shortcut in the project header runs it directly.</>,
             <><B>AI Assist in tabs:</B> on Overview, Insights, Site Health and On-Page, an assist panel offers “Analyze this tab” or a free-text question about that tab's data.</>,
+            <><B>AI Cluster (Keywords tab):</B> groups all keywords into topic clusters by search intent.</>,
+            <><B>Title/meta rewrites (Insights tab):</B> suggests higher-CTR titles & descriptions for under-performing queries.</>,
           ]}
         />
       </Section>

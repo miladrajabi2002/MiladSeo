@@ -53,6 +53,7 @@ export async function GET(): Promise<NextResponse> {
         domain: project.domain,
         gscProperty: project.gscProperty,
         location: project.location,
+        color: project.color,
         keywordCount: project._count.keywords,
         avgPosition: avg,
         lastSyncAt: project.lastSyncAt?.toISOString() ?? null,
@@ -77,6 +78,11 @@ interface CreateProjectBody {
   domain?: unknown;
   gscProperty?: unknown;
   location?: unknown;
+  color?: unknown;
+}
+
+function validHex(value: unknown): string | null {
+  return typeof value === "string" && /^#[0-9a-fA-F]{6}$/.test(value) ? value : null;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -101,7 +107,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const project = await prisma.project.create({
-      data: { name, domain, gscProperty, location },
+      data: { name, domain, gscProperty, location, color: validHex(body.color) },
     });
     return ok(project, 201);
   } catch (error) {

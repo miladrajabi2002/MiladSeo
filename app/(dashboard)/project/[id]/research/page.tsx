@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { Check, Copy, HelpCircle, Lightbulb, Loader2, Search } from "lucide-react";
-import { apiGet, errorMessage } from "@/lib/client";
+import { Check, Copy, HelpCircle, Lightbulb, Loader2, Plus, Search } from "lucide-react";
+import { apiGet, apiPost, errorMessage } from "@/lib/client";
 import type { KeywordResearch } from "@/lib/types";
 
 type Tab = "all" | "questions";
@@ -17,6 +17,30 @@ export default function ResearchPage() {
   const [data, setData] = useState<KeywordResearch | null>(null);
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<Tab>("all");
+  const [adding, setAdding] = useState<string | null>(null);
+
+  const addKeyword = async (text: string) => {
+    setAdding(text);
+    try {
+      await apiPost(`/api/projects/${projectId}/keywords`, { text });
+      toast.success(`Added “${text}”`);
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              ideas: prev.ideas.map((i) =>
+                i.text === text ? { ...i, tracked: true } : i
+              ),
+            }
+          : prev
+      );
+      window.dispatchEvent(new Event("project-synced"));
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setAdding(null);
+    }
+  };
 
   const run = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -130,7 +154,23 @@ export default function ResearchPage() {
                     <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-accent-green/10 px-1.5 py-0.5 text-[10px] font-semibold text-accent-green">
                       <Check size={10} /> tracked
                     </span>
-                  ) : null}
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void addKeyword(idea.text)}
+                      disabled={adding === idea.text}
+                      aria-label={`Track “${idea.text}”`}
+                      title="Add to tracked keywords"
+                      className="flex shrink-0 items-center gap-0.5 rounded-full border border-border-base px-1.5 py-0.5 text-[10px] font-semibold text-text-muted transition-colors hover:border-accent-blue hover:text-accent-blue disabled:opacity-50"
+                    >
+                      {adding === idea.text ? (
+                        <Loader2 size={10} className="animate-spin" />
+                      ) : (
+                        <Plus size={10} />
+                      )}
+                      track
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

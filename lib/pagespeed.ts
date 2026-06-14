@@ -1,6 +1,7 @@
 import axios from "axios";
+import { format } from "date-fns";
 import { prisma } from "./prisma";
-import type { PageSpeedRow } from "./types";
+import type { PageSpeedHistoryPoint, PageSpeedRow } from "./types";
 
 const ENDPOINT =
   "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
@@ -47,14 +48,75 @@ function toRow(record: {
   };
 }
 
+/** Latest cached score per (urlPath, strategy). */
 export async function getPageSpeedResults(
   projectId: number
 ): Promise<PageSpeedRow[]> {
   const rows = await prisma.pageSpeedResult.findMany({
     where: { projectId },
-    orderBy: { urlPath: "asc" },
+    orderBy: [{ urlPath: "asc" }, { checkedAt: "desc" }],
   });
-  return rows.map(toRow);
+  // Keep only the most recent row per url+strategy (rows already desc by date)
+  const seen = new Set<string>();
+  const latest: typeof rows = [];
+  for (const r of rows) {
+    const key = `${r.urlPath}|${r.strategy}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    latest.push(r);
+  }
+  latest.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
+  return latest.map(toRow);
+}
+
+/**
+ * Daily PageSpeed score/CWV history for charting. Optionally narrowed to one
+ * URL; otherwise returns the project-wide daily average per strategy.
+ */
+export async function getPageSpeedHistory(
+  projectId: number,
+  urlPath?: string,
+  strategy?: "mobile" | "desktop"
+): Promise<PageSpeedHistoryPoint[]> {
+  const rows = await prisma.pageSpeedResult.findMany({
+    where: {
+      projectId,
+      ...(urlPath ? { urlPath } : {}),
+      ...(strategy ? { strategy } : {}),
+    },
+    orderBy: { day: "asc" },
+  });
+
+  // Average per (day, strategy) when aggregating across URLs
+  const byKey = new Map<
+    string,
+    { day: string; strategy: string; score: number[]; lcp: number[]; cls: number[]; inp: number[] }
+  >();
+  for (const r of rows) {
+    const key = `${r.day}|${r.strategy}`;
+    const e =
+      byKey.get(key) ??
+      { day: r.day, strategy: r.strategy, score: [], lcp: [], cls: [], inp: [] };
+    e.score.push(r.score);
+    if (r.lcpMs !== null) e.lcp.push(r.lcpMs);
+    if (r.cls !== null) e.cls.push(r.cls);
+    if (r.inpMs !== null) e.inp.push(r.inpMs);
+    byKey.set(key, e);
+  }
+
+  const avg = (xs: number[]): number | null =>
+    xs.length > 0 ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 100) / 100 : null;
+
+  return Array.from(byKey.values())
+    .map((e) => ({
+      day: e.day,
+      strategy: e.strategy as "mobile" | "desktop",
+      score: Math.round((e.score.reduce((a, b) => a + b, 0) / e.score.length) || 0),
+      lcpMs: avg(e.lcp),
+      cls: avg(e.cls),
+      inpMs: avg(e.inp),
+    }))
+    .sort((a, b) => a.day.localeCompare(b.day));
 }
 
 /**
@@ -98,6 +160,7 @@ export async function runPageSpeed(
       return value !== undefined ? Math.round(value * 100) / 100 : null;
     };
 
+    const day = format(new Date(), "yyyy-MM-dd");
     const data = {
       score: Math.round(rawScore * 100),
       lcpMs: metric("largest-contentful-paint"),
@@ -108,12 +171,14 @@ export async function runPageSpeed(
       checkedAt: new Date(),
     };
 
+    // One row per URL+strategy per day — re-running today overwrites today's
+    // score while preserving previous days for the history chart.
     const record = await prisma.pageSpeedResult.upsert({
       where: {
-        projectId_urlPath_strategy: { projectId, urlPath, strategy },
+        projectId_urlPath_strategy_day: { projectId, urlPath, strategy, day },
       },
       update: data,
-      create: { projectId, urlPath, strategy, ...data },
+      create: { projectId, urlPath, strategy, day, ...data },
     });
     results.push(toRow(record));
   }

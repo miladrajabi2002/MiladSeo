@@ -6,6 +6,7 @@ import { format, parseISO } from "date-fns";
 import toast from "react-hot-toast";
 import { Gauge, Smartphone, Monitor } from "lucide-react";
 import { apiPost, errorMessage } from "@/lib/client";
+import PageSpeedHistoryChart from "./PageSpeedHistoryChart";
 import type { PageSpeedRow } from "@/lib/types";
 
 interface PageSpeedViewProps {
@@ -77,8 +78,9 @@ export default function PageSpeedView({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
-      className="rounded-xl border border-border-base bg-bg-card shadow-card"
+      className="space-y-4"
     >
+      <div className="rounded-xl border border-border-base bg-bg-card shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-base p-5 pb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -192,6 +194,9 @@ export default function PageSpeedView({
           </tbody>
         </table>
       </div>
+      </div>
+
+      <PageSpeedHistoryChart projectId={projectId} strategy={strategy} />
     </motion.div>
   );
 }

@@ -7,7 +7,10 @@ import toast from "react-hot-toast";
 import TrafficChart from "@/components/project/TrafficChart";
 import OpportunitiesTable from "@/components/project/OpportunitiesTable";
 import CannibalizationView from "@/components/project/CannibalizationView";
+import SerpFeaturesView from "@/components/project/SerpFeaturesView";
+import AiSnippets from "@/components/project/AiSnippets";
 import AiAssist from "@/components/project/AiAssist";
+import RangeSelector from "@/components/ui/RangeSelector";
 import { ChartSkeleton, TableSkeleton } from "@/components/ui/LoadingSkeleton";
 import { apiGet, errorMessage } from "@/lib/client";
 import type { CannibalizationGroup, TrafficData } from "@/lib/types";
@@ -15,7 +18,7 @@ import type { CannibalizationGroup, TrafficData } from "@/lib/types";
 export default function InsightsPage() {
   const params = useParams<{ id: string }>();
   const projectId = Number(params.id);
-  const [days, setDays] = useState<30 | 90>(30);
+  const [days, setDays] = useState<number>(30);
   const [traffic, setTraffic] = useState<TrafficData | null>(null);
   const [cannibalization, setCannibalization] = useState<
     CannibalizationGroup[] | null
@@ -50,22 +53,7 @@ export default function InsightsPage() {
         <h2 className="text-base font-semibold text-text-primary">
           Traffic & Optimization Insights
         </h2>
-        <div className="flex rounded-lg border border-border-base bg-bg-card p-0.5">
-          {([30, 90] as const).map((d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDays(d)}
-              className={`rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
-                days === d
-                  ? "bg-accent-blue text-white"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              {d} days
-            </button>
-          ))}
-        </div>
+        <RangeSelector value={days} onChange={setDays} allowCustom />
       </div>
 
       {traffic === null ? (
@@ -84,6 +72,10 @@ export default function InsightsPage() {
       ) : (
         <OpportunitiesTable rows={traffic.opportunities} />
       )}
+
+      <AiSnippets projectId={projectId} />
+
+      <SerpFeaturesView projectId={projectId} days={days} />
 
       {cannibalization === null ? (
         <TableSkeleton rows={4} />

@@ -11,6 +11,7 @@ import ComparisonCard from "@/components/project/ComparisonCard";
 import VisibilityChart from "@/components/project/VisibilityChart";
 import AnnotationsPanel from "@/components/project/AnnotationsPanel";
 import AiAssist from "@/components/project/AiAssist";
+import RangeSelector from "@/components/ui/RangeSelector";
 import {
   ChartSkeleton,
   StatRowSkeleton,
@@ -23,11 +24,12 @@ export default function OverviewPage() {
   const projectId = params.id;
   const [stats, setStats] = useState<OverviewStatsData | null>(null);
   const [domain, setDomain] = useState("");
+  const [days, setDays] = useState<number>(30);
 
   const load = useCallback(() => {
     if (!projectId) return;
     Promise.all([
-      apiGet<OverviewStatsData>(`/api/projects/${projectId}/overview`),
+      apiGet<OverviewStatsData>(`/api/projects/${projectId}/overview?days=${days}`),
       apiGet<{ domain: string }>(`/api/projects/${projectId}`),
     ])
       .then(([overview, project]) => {
@@ -35,7 +37,7 @@ export default function OverviewPage() {
         setDomain(project.domain);
       })
       .catch((error) => toast.error(errorMessage(error)));
-  }, [projectId]);
+  }, [projectId, days]);
 
   useEffect(() => {
     load();
@@ -80,6 +82,10 @@ export default function OverviewPage() {
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="space-y-6"
     >
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-text-primary">Overview</h2>
+        <RangeSelector value={days} onChange={setDays} allowCustom />
+      </div>
       <OverviewStats stats={stats} domain={domain} />
       <AiAssist projectId={projectId} area="overview" />
       <ComparisonCard projectId={Number(projectId)} />

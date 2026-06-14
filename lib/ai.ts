@@ -14,7 +14,15 @@ import { getIndexStatuses } from "./inspection";
 import { getCruxHistory } from "./crux";
 import { getGa4Summary } from "./ga4";
 import { auditPage } from "./onpage";
-import type { AiAnalysis, AiConfigStatus, AiProvider } from "./types";
+import type {
+  AiAnalysis,
+  AiConfigStatus,
+  AiProvider,
+  KeywordCluster,
+  KeywordClusterResult,
+  SnippetSuggestion,
+  SnippetSuggestionResult,
+} from "./types";
 
 const PROVIDER_KEY = "ai_provider";
 const APIKEY_KEY = "ai_api_key";
@@ -434,4 +442,131 @@ export async function assist(
 
   const user = `${task}\n\nData currently on the "${area}" tab:\n${JSON.stringify(data, null, 2)}`;
   return complete(config, ASSIST_SYSTEM, user, { maxTokens: 1500 });
+}
+
+// ---------------------------------------------------------------------------
+// Generic JSON extraction (for cluster / snippet helpers)
+// ---------------------------------------------------------------------------
+
+function extractJsonObject<T>(raw: string): T {
+  let text = raw.trim();
+  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) text = fence[1].trim();
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1) {
+    throw new Error("The AI response did not contain valid JSON");
+  }
+  return JSON.parse(text.slice(start, end + 1)) as T;
+}
+
+// ---------------------------------------------------------------------------
+// AI keyword clustering
+// ---------------------------------------------------------------------------
+
+const CLUSTER_SYSTEM = `You are an SEO strategist. Group the given keywords into a small number of topic clusters by search intent and semantic similarity. Return ONLY a JSON object (no markdown, no prose) of this exact shape:
+{
+  "clusters": [
+    {
+      "name": string (short cluster topic, in the same language as the keywords),
+      "intent": "informational" | "commercial" | "transactional" | "navigational" | "other",
+      "keywords": [string] (the exact keyword strings that belong here)
+    }
+  ]
+}
+Every keyword must appear in exactly one cluster. Prefer 4-12 meaningful clusters. Keep keyword strings verbatim.`;
+
+export async function clusterKeywords(projectId: number): Promise<KeywordClusterResult> {
+  const config = await getAiConfig();
+  if (!config) throw new Error("No AI provider is configured. Add an API key first.");
+
+  const keywords = await prisma.keyword.findMany({
+    where: { projectId },
+    select: { text: true },
+    distinct: ["text"],
+    take: 300,
+  });
+  const texts = keywords.map((k) => k.text);
+  if (texts.length === 0) throw new Error("No keywords to cluster — add or sync keywords first.");
+
+  const user = `Cluster these ${texts.length} keywords:\n${JSON.stringify(texts)}`;
+  const raw = await complete(config, CLUSTER_SYSTEM, user, { maxTokens: 4000, json: true });
+  const parsed = extractJsonObject<{ clusters: KeywordCluster[] }>(raw);
+  if (!Array.isArray(parsed.clusters)) {
+    throw new Error("The AI response was missing the clusters array");
+  }
+
+  return {
+    clusters: parsed.clusters,
+    provider: config.provider,
+    model: config.model,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// AI title / meta description suggestions for CTR opportunities
+// ---------------------------------------------------------------------------
+
+const SNIPPET_SYSTEM = `You are an expert SEO copywriter. For each query below, write an improved SEO title tag and meta description that would raise click-through rate, given the query already ranks but under-performs on CTR. Return ONLY a JSON object (no markdown, no prose) of this exact shape:
+{
+  "suggestions": [
+    {
+      "keyword": string (echo the query verbatim),
+      "suggestedTitle": string (<= 60 characters, compelling, includes the query intent),
+      "suggestedMeta": string (<= 155 characters, benefit-driven, includes a call to action),
+      "rationale": string (one sentence: why this will lift CTR)
+    }
+  ]
+}
+Write the title and meta in the same language as the query (Persian if the query is Persian).`;
+
+export async function suggestSnippets(projectId: number): Promise<SnippetSuggestionResult> {
+  const config = await getAiConfig();
+  if (!config) throw new Error("No AI provider is configured. Add an API key first.");
+
+  const traffic = await getTraffic(projectId, 30);
+  const opportunities = traffic.opportunities.slice(0, 12);
+  if (opportunities.length === 0) {
+    throw new Error("No CTR opportunities found — run a sync first so there is traffic data.");
+  }
+
+  const user = `Improve titles and meta descriptions for these under-performing queries:\n${JSON.stringify(
+    opportunities.map((o) => ({
+      keyword: o.text,
+      position: o.position,
+      ctr: o.ctr,
+      expectedCtr: o.expectedCtr,
+      impressions: o.impressions,
+    }))
+  )}`;
+
+  const raw = await complete(config, SNIPPET_SYSTEM, user, { maxTokens: 4000, json: true });
+  const parsed = extractJsonObject<{ suggestions: Partial<SnippetSuggestion>[] }>(raw);
+  if (!Array.isArray(parsed.suggestions)) {
+    throw new Error("The AI response was missing the suggestions array");
+  }
+
+  // Re-attach the data fields we already know so the UI can show before/after
+  const byKeyword = new Map(opportunities.map((o) => [o.text, o]));
+  const suggestions: SnippetSuggestion[] = parsed.suggestions.map((s) => {
+    const opp = s.keyword ? byKeyword.get(s.keyword) : undefined;
+    return {
+      keyword: s.keyword ?? "",
+      urlPath: opp?.urlPath ?? null,
+      position: opp?.position ?? null,
+      currentCtr: opp?.ctr ?? 0,
+      expectedCtr: opp?.expectedCtr ?? 0,
+      suggestedTitle: s.suggestedTitle ?? "",
+      suggestedMeta: s.suggestedMeta ?? "",
+      rationale: s.rationale ?? "",
+    };
+  });
+
+  return {
+    suggestions,
+    provider: config.provider,
+    model: config.model,
+    generatedAt: new Date().toISOString(),
+  };
 }

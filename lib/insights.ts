@@ -328,8 +328,11 @@ export async function getTraffic(
 // Pages view (per-URL aggregation)
 // ---------------------------------------------------------------------------
 
-export async function getPages(projectId: number): Promise<PageRow[]> {
-  const since = subDays(new Date(), 30);
+export async function getPages(
+  projectId: number,
+  days = 30
+): Promise<PageRow[]> {
+  const since = subDays(new Date(), Math.min(Math.max(days, 1), 480));
   const keywords = await prisma.keyword.findMany({
     where: { projectId, urlPath: { not: null } },
     include: {

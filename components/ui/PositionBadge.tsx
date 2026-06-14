@@ -7,19 +7,20 @@ interface PositionBadgeProps {
 }
 
 function badgeClasses(position: number): string {
+  const base = "text-white shadow-sm ring-1 ring-inset ring-white/15";
   if (position <= 3) {
-    return "bg-pos-top3 text-white text-sm font-bold px-2.5 py-1";
+    return `bg-gradient-to-br from-pos-top3 to-pos-top3/80 text-sm font-bold px-2.5 py-1 ${base}`;
   }
   if (position <= 10) {
-    return "bg-pos-top10 text-white text-xs font-semibold px-2 py-0.5";
+    return `bg-gradient-to-br from-pos-top10 to-pos-top10/80 text-xs font-semibold px-2 py-0.5 ${base}`;
   }
   if (position <= 20) {
-    return "bg-pos-top20 text-white text-xs font-semibold px-2 py-0.5";
+    return `bg-gradient-to-br from-pos-top20 to-pos-top20/80 text-xs font-semibold px-2 py-0.5 ${base}`;
   }
   if (position <= 50) {
-    return "bg-pos-top50 text-white text-xs font-semibold px-2 py-0.5";
+    return `bg-gradient-to-br from-pos-top50 to-pos-top50/80 text-xs font-semibold px-2 py-0.5 ${base}`;
   }
-  return "bg-pos-beyond/80 text-white text-xs font-semibold px-2 py-0.5";
+  return `bg-gradient-to-br from-pos-beyond/90 to-pos-beyond/70 text-xs font-semibold px-2 py-0.5 ${base}`;
 }
 
 export default function PositionBadge({ position }: PositionBadgeProps) {

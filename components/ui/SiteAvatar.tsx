@@ -4,6 +4,8 @@ interface SiteAvatarProps {
   domain: string;
   size?: number;
   className?: string;
+  /** optional hex accent — overrides the domain-derived gradient */
+  color?: string | null;
 }
 
 const GRADIENTS = [
@@ -29,13 +31,27 @@ function hashString(value: string): number {
  * so every project gets a stable, distinct identity — no network fetches,
  * no generic globe.
  */
+function shade(hex: string): string {
+  // Build a gradient from a single hex by darkening the second stop a touch
+  const m = hex.replace("#", "");
+  if (m.length !== 6) return `linear-gradient(135deg, ${hex}, ${hex})`;
+  const n = parseInt(m, 16);
+  const r = Math.max(0, ((n >> 16) & 255) - 40);
+  const g = Math.max(0, ((n >> 8) & 255) - 40);
+  const b = Math.max(0, (n & 255) - 40);
+  return `linear-gradient(135deg, ${hex}, rgb(${r}, ${g}, ${b}))`;
+}
+
 export default function SiteAvatar({
   domain,
   size = 44,
   className = "",
+  color,
 }: SiteAvatarProps) {
   const cleaned = domain.replace(/^www\./, "");
-  const gradient = GRADIENTS[hashString(cleaned) % GRADIENTS.length];
+  const gradient = color
+    ? shade(color)
+    : GRADIENTS[hashString(cleaned) % GRADIENTS.length];
   const initial = (cleaned[0] ?? "?").toUpperCase();
 
   return (

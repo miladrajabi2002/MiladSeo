@@ -4,8 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { format, parseISO } from "date-fns";
 import toast from "react-hot-toast";
-import { RefreshCw, SearchCheck } from "lucide-react";
+import { RefreshCw, SearchCheck, Zap } from "lucide-react";
 import { apiPost, errorMessage } from "@/lib/client";
+import IndexCoverageChart from "./IndexCoverageChart";
 import type { IndexStatusRow } from "@/lib/types";
 
 interface IndexStatusViewProps {
@@ -52,6 +53,8 @@ export default function IndexStatusView({
 }: IndexStatusViewProps) {
   const [checkingAll, setCheckingAll] = useState(false);
   const [checkingPath, setCheckingPath] = useState<string | null>(null);
+  const [liveUrl, setLiveUrl] = useState("");
+  const [liveChecking, setLiveChecking] = useState(false);
 
   const runCheck = async (urlPaths?: string[]) => {
     try {
@@ -62,6 +65,20 @@ export default function IndexStatusView({
       onChanged();
     } catch (error) {
       toast.error(errorMessage(error));
+    }
+  };
+
+  const inspectLive = async () => {
+    const path = liveUrl.trim();
+    if (!path) return;
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    setLiveChecking(true);
+    toast("Inspecting URL live in Google…", { icon: "🔍" });
+    try {
+      await runCheck([normalized]);
+      setLiveUrl("");
+    } finally {
+      setLiveChecking(false);
     }
   };
 
@@ -88,8 +105,9 @@ export default function IndexStatusView({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="rounded-xl border border-border-base bg-bg-card shadow-card"
+      className="space-y-4"
     >
+      <div className="rounded-xl border border-border-base bg-bg-card shadow-card">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-base p-5 pb-4">
         <div>
           <div className="flex items-center gap-2">
@@ -113,6 +131,32 @@ export default function IndexStatusView({
           <RefreshCw size={13} className={checkingAll ? "animate-spin" : ""} />
           {checkingAll ? "Checking…" : "Check stale batch (25)"}
         </button>
+      </div>
+
+      {/* Live single-URL inspection */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border-base px-5 py-3">
+        <span className="text-xs font-medium text-text-secondary">Inspect a URL live:</span>
+        <div className="flex flex-1 items-center gap-2">
+          <input
+            type="text"
+            value={liveUrl}
+            onChange={(e) => setLiveUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void inspectLive();
+            }}
+            placeholder="/blog/my-post"
+            className="min-w-[160px] flex-1 rounded-lg border border-border-base bg-bg-primary px-3 py-1.5 font-mono text-xs text-text-primary outline-none focus:border-accent-blue"
+          />
+          <button
+            type="button"
+            onClick={() => void inspectLive()}
+            disabled={liveChecking || !liveUrl.trim()}
+            className="flex items-center gap-1.5 rounded-lg bg-accent-green px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <Zap size={12} />
+            {liveChecking ? "Checking…" : "Inspect"}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -181,6 +225,9 @@ export default function IndexStatusView({
           </tbody>
         </table>
       </div>
+      </div>
+
+      <IndexCoverageChart projectId={projectId} />
     </motion.div>
   );
 }

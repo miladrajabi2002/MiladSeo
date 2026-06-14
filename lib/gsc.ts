@@ -12,8 +12,27 @@ export const GOOGLE_SCOPES = [
 ];
 
 const REFRESH_TOKEN_KEY = "google_refresh_token";
-const SYNC_DAYS = 30;
+const SYNC_WINDOW_KEY = "sync_window_days";
+const DEFAULT_SYNC_DAYS = 30;
+const MAX_SYNC_DAYS = 480; // GSC retains ~16 months
 const ROW_LIMIT = 1000;
+
+/** The configured number of days each sync pulls (default 30). */
+export async function getSyncWindow(): Promise<number> {
+  const row = await prisma.setting.findUnique({ where: { key: SYNC_WINDOW_KEY } });
+  const n = row ? Number.parseInt(row.value, 10) : DEFAULT_SYNC_DAYS;
+  return Number.isFinite(n) ? Math.min(Math.max(n, 1), MAX_SYNC_DAYS) : DEFAULT_SYNC_DAYS;
+}
+
+export async function setSyncWindow(days: number): Promise<number> {
+  const clamped = Math.min(Math.max(Math.round(days), 1), MAX_SYNC_DAYS);
+  await prisma.setting.upsert({
+    where: { key: SYNC_WINDOW_KEY },
+    update: { value: String(clamped) },
+    create: { key: SYNC_WINDOW_KEY, value: String(clamped) },
+  });
+  return clamped;
+}
 
 export function getOAuth2Client(): OAuth2Client {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -125,7 +144,10 @@ export function isSyncing(projectId: number): boolean {
  * time (query + page + device dimensions), upserts keywords and rankings,
  * then runs alert detection.
  */
-export async function syncProject(projectId: number): Promise<SyncResult> {
+export async function syncProject(
+  projectId: number,
+  daysOverride?: number
+): Promise<SyncResult> {
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) {
     throw new Error(`Project ${projectId} not found`);
@@ -137,6 +159,10 @@ export async function syncProject(projectId: number): Promise<SyncResult> {
   syncing.add(projectId);
 
   try {
+    const syncDays = daysOverride
+      ? Math.min(Math.max(Math.round(daysOverride), 1), MAX_SYNC_DAYS)
+      : await getSyncWindow();
+
     const auth = await getAuthorizedClient();
     const searchconsole = google.searchconsole({ version: "v1", auth });
 
@@ -150,7 +176,7 @@ export async function syncProject(projectId: number): Promise<SyncResult> {
 
     let rankingsWritten = 0;
 
-    for (let daysAgo = SYNC_DAYS; daysAgo >= 1; daysAgo--) {
+    for (let daysAgo = syncDays; daysAgo >= 1; daysAgo--) {
       const dateStr = format(subDays(new Date(), daysAgo), "yyyy-MM-dd");
       const response = await searchconsole.searchanalytics.query({
         siteUrl: project.gscProperty,
